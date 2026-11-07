@@ -13,6 +13,8 @@ import re
 
 import yaml
 
+from .units import si_factor
+
 
 class _Loader(yaml.SafeLoader):
     """SafeLoader that also reads ``8.0e6`` / ``1e-6`` as floats.
@@ -54,14 +56,29 @@ def _is_param(node: Any) -> bool:
     return isinstance(node, dict) and "value" in node
 
 
-def param(cfg: dict[str, Any], key: str) -> Any:
-    """Return the value of a dotted key, e.g. ``param(cfg, "capex.manifold")``."""
+def param_raw(cfg: dict[str, Any], key: str) -> Any:
+    """Value of a dotted key exactly as written in the YAML (no unit conversion)."""
     node: Any = cfg
     for part in key.split("."):
         node = node[part]
     if not _is_param(node):
         raise KeyError(f"'{key}' is not a parameter (needs a 'value' field)")
     return node["value"]
+
+
+def param(cfg: dict[str, Any], key: str) -> Any:
+    """Value of a dotted key converted to SI, e.g. ``param(cfg, "capex.manifold.sit")``.
+
+    Numbers are multiplied by the factor for their ``unit`` (see units.TO_SI), so
+    "2 days" comes back as 172800 s. Strings, lists and dicts are returned as written.
+    """
+    node: Any = cfg
+    for part in key.split("."):
+        node = node[part]
+    value = param_raw(cfg, key)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return value
+    return value * si_factor(node.get("unit", "-"))
 
 
 def iter_params(cfg: dict[str, Any], prefix: str = ""):

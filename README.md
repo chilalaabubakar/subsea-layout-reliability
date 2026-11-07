@@ -15,8 +15,9 @@ expected cost of failures. See `CLAUDE.md` for the full project brief and work p
 | 2 | `layout.py`: toy field (6 wells, 3 sites, 1 host) | done |
 | 3 | `economics.py`: CAPEX model | done |
 | 4 | `optimizer.py`: CAPEX-only MILP (case 1) | done |
-| 5 | `reliability.py` + `maintenance.py` | next |
-| 6-10 | NPV objective, Monte Carlo, sensitivity, realistic case, figures | to do |
+| 5 | `reliability.py` + `maintenance.py`: expected failure cost per component | done |
+| 6 | Failure cost in the MILP, NPV objective (case 2) | next |
+| 7-10 | Monte Carlo, sensitivity, realistic case, figures | to do |
 
 > Cost data: lines from Kaiser (2016); trees, manifolds and vessel rates from Bai & Bai (2010) Ch. 6.
 > Details, page numbers and ranges are in `docs/sources.md`. Costs are not yet escalated to one year.
@@ -33,7 +34,8 @@ pip install -e .                 # makes `import layout_rel` work everywhere
 ## Run
 
 ```bash
-python scripts/run_case1.py      # case 1: CAPEX-only optimal layout
+python scripts/run_case1.py         # case 1: CAPEX-only optimal layout
+python scripts/run_failure_cost.py  # step 5: expected yearly failure cost of candidate layouts
 pytest                           # run the tests
 ```
 
@@ -61,7 +63,18 @@ tests/           pytest tests (MILP is checked against brute-force enumeration)
 results/         figures and tables
 ```
 
+## Failure cost model (step 5)
+
+Each component of a layout is a failure mode with a constant rate (OREDA / DNV GL data, see
+`docs/sources.md`): X-mas tree (incl. SCM) and infield flowline stop one well; manifold,
+tie-back flowline and tie-back umbilical stop every well on that manifold. Per failure:
+downtime = vessel mobilisation + repair days x (1 + weather allowance); repair cost =
+day rate x downtime + spare part; lost production = downtime x rate of the stopped wells x oil
+price. Expected yearly cost = sum of rate x (repair cost + lost production).
+`maintenance.failure_cost_coefficients` gives the same cost in linear form for the MILP.
+
 ## Conventions
 
 - Every parameter is in YAML with `value`, `unit` and `source`. No numbers hard-coded in the code.
-- SI units inside the code (m, s, USD). Units are converted only for plots and tables.
+- Values in YAML are written in the source's units; the first word of `unit` (e.g. `days`, `1/h`,
+  `bbl/day`) is converted to SI (m, s, Sm3, USD) by `config.param` (see `units.py`).
