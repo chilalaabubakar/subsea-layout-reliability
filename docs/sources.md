@@ -232,6 +232,32 @@ Técnico, Universidade de Lisboa. Tables 11-14 from DNV (2009) (*Recommended fai
 - Table 14 risers: steel <=16" 9.1e-4, >=18" 1.2e-4, flexible dynamic 4.5e-4 per riser-year.
 - No tree, manifold or umbilical rates.
 
+## Thies, Smith & Johanning (2012): umbilical failure rate (OREDA 2002)
+
+Thies, P.R., Smith, G.H., Johanning, L. (2012). Addressing failure rate uncertainties of marine energy
+converters. *Renewable Energy* 44, 359-367. https://doi.org/10.1016/j.renene.2012.02.007
+
+- Sec. 5.2.1: prior taken from OREDA (2002) handbook p. 811 (their ref. [35]) for a (dynamic) umbilical:
+  "nine umbilical units with two reported failures, external leakage and transmission failure".
+- Mean failure rate **4.2669 per 10^6 h** (sd 4.8281 per 10^6 h), "MTTF = 26.7 years with sd 23.6 years";
+  i.e. **0.037 per year per umbilical**. 90 % interval 0.2-14 per 10^6 h (Fig. 6), i.e. 0.002-0.12 per year.
+- Limitation: very small sample (9 units, 2 failures), per unit not per km, dynamic umbilical (Thies discuss
+  oil and gas umbilicals with hydraulic + electrical lines). Wide range, good for sensitivity.
+
+## Zhang et al. (2025): control system maintenance, evidence on shutdown scope and repair time
+
+Zhang, Y., Cai, B., Gao, C., Zhao, Y., Shao, X., Yang, C. (2025). A system-centred predictive maintenance
+re-optimization method based on multi-agent deep reinforcement learning. *Expert Systems With Applications*
+274, 127034. https://doi.org/10.1016/j.eswa.2025.127034
+
+- Sec. 3.3: control system components (MCS, EPU, HPU, SCM, umbilical) "are connected in series; thus, any
+  component failure in the system can cause system failure, leading to system shutdown".
+- Sec. 3.3: South China Sea case: "all the production wells of platform A ... were temporarily shut down because
+  of communication failure, and the replacement of subsea communication cables took only 6 days".
+  Evidence that one umbilical/communication failure stops every well it serves, and for a repair duration.
+- Table 1 "failure rate/month" values (MCS 0.089, EPU 0.0127, HPU 0.06, SCM 0.018, umbilical 0.0044) are
+  **degradation-model parameters** simulated from OREDA, not failure rates. Not used as lambda.
+
 ## Failure-rate summary (candidates for step 5)
 
 | Component | Rate | Per year | Source | Basis |
@@ -244,7 +270,7 @@ Técnico, Universidade de Lisboa. Tables 11-14 from DNV (2009) (*Recommended fai
 | Well control system (cross-check) | 2.6-4.2e-5/h | 0.23-0.37 | IRF 2018 (OREDA) | incl. topside MCS |
 | Rigid flowline | 2.4e-4 per km-yr | | DNV GL 2017 via Silva 2025 | small diameter |
 | Flexible flowline | 2.1e-3 per km-yr | | DNV GL 2017 via Silva 2025 | |
-| Umbilical | none yet | | | |
+| Umbilical | 4.27e-6/h per unit | 0.037 (range 0.002-0.12) | Thies et al. 2012 (OREDA 2002 p. 811) | 9 units, 2 failures |
 
 Consistency: with the SCM included, manifold/tree = 0.209/0.074, about 3 (was about 100 without controls).
 The manifold rate counts all failure modes while the SCM rate counts critical failures only, so the
@@ -252,7 +278,7 @@ manifold rate is probably still high relative to the tree. Test with the sensiti
 
 ## Still needed
 
-- Failure rates (lambda): **umbilical** (static, dynamic, UTA). A critical-only manifold rate would also help. Sources: published papers/theses quoting OREDA (2009 or later editions); PARLOC
+- Failure rates: a critical-only manifold rate would help; a per-km umbilical rate (current one is per unit, small sample). Sources: published papers/theses quoting OREDA (2009 or later editions); PARLOC
   (UK pipeline and riser loss of containment) for flowlines, see Bai p. 300.
 - Repair durations and vessel waiting/mobilization times.
 - Common cost year: escalate Kaiser (2014) and Bai (2007/2009) to one year.
