@@ -190,27 +190,69 @@ deepwater concept development. OTC 13290, Offshore Technology Conference, Housto
 - Fig. 2: reliability in a life-cycle-cost view (CAPEX + OPEX + regularity loss "REGEX"). Good for the
   introduction.
 
+## Mahmoudi et al. (2021): critical failure rates of subsea control module (SCM) components (OREDA)
+
+Mahmoudi, J. et al. (2021). SIL analysis of subsea control system components based on a typical OREDA
+database. *Quality and Reliability Engineering International* 37, 3297-3313. https://doi.org/10.1002/qre.2909
+
+- Sec. 1: OREDA classifies failures as critical, degraded, incipient, unknown. Sec. 3: here
+  lambda_crit = lambda_D (dangerous) + lambda_ST (spurious trip).
+- Table 7 (per 10^6 h), SCM subunit, lambda_crit: subsea electronic module (SEM) **5.1550**; solenoid control
+  valve 0.3169; power/signal coupler 0.1203; hydraulic coupling 0.0349; power supply unit 0.8881; check valve
+  0.2146; valve other 1.5089. (Spurious trip only, lambda_ST: SEM 0.4472, PSU 0.4037, valve other 0.5102.)
+- Data are "exemplary" from two unnamed OREDA versions (OD1 newer than OD2); Tables 5-6 give units, failures and
+  time in service.
+- **Our use:** one of each SCM component in series = 8.24e-6/h = **0.072 per year** (critical). This is a lower bound:
+  a real SCM has many solenoid control valves (the IRF 2018 paper mentions 20 control functions). With 20 valves it
+  would be 14.3e-6/h = 0.125 per year (our assumption).
+- Note: in SIL terms "dangerous" means fail-on-demand, which does not by itself stop production; a spurious trip does.
+  For lost-production purposes, all critical failures are a conservative choice.
+
+## Silva, da Hora & Fernandes (2018), IRF2018: control system cross-check
+
+Silva, A.H.M., da Hora, H., Fernandes, R. (2018). Reliability assessment of a subsea electro-hydraulic control
+system. Proc. IRF2018, Lisbon, paper 7053. ISBN 978-989-20-8313-1.
+
+- Fault tree of "loss of well control" (topside MCS + umbilical + SCM), OREDA data: failure probability 17.35 % at
+  7,400 h and 67.52 % at 26,508 h. Equivalent constant rate (our calculation, lambda = -ln(1-P)/t):
+  2.6e-5/h = 0.23 per year (7,400 h) and 4.2e-5/h = 0.37 per year (26,508 h).
+- Largest contributors: topside master control station (MCS A and B), SCM directional control valve leakage,
+  SCM sensors and SEMs. Includes topside items, so it is an upper cross-check for a well's control system.
+
+## Schneider (Lisbon MSc thesis): DNV (2009) pipeline and flexible line failure frequencies
+
+Schneider, K. *Risk and Reliability Analysis of a Subsea System for Oil Production*. MSc thesis, Instituto Superior
+Técnico, Universidade de Lisboa. Tables 11-14 from DNV (2009) (*Recommended failure rates for pipelines*).
+
+- Table 11 (well stream / small pipelines, unprocessed fluid): Alternative 1 f_km = 5.0e-4 per km-year;
+  Alternative 2 f_km = 2.5e-4 per km-year + f_pipeline = 1.4e-3 per year; dragged anchor 1.9e-7 per crossing per year.
+- Table 13 (flexible, midline): 11 leaks, 3447 km-years, **2.3e-4 per km-year**; 2.8e-5 per pipe-year.
+  Note: 11/3447 = 3.2e-3, so the printed 2.3e-4 looks inconsistent; Silva & Guedes Soares (2025) give
+  2.1e-3 per km-year for flexible (DNV GL 2017). Use 2.1e-3 and treat 2.3e-4 as doubtful.
+- Table 14 risers: steel <=16" 9.1e-4, >=18" 1.2e-4, flexible dynamic 4.5e-4 per riser-year.
+- No tree, manifold or umbilical rates.
+
 ## Failure-rate summary (candidates for step 5)
 
 | Component | Rate | Per year | Source | Basis |
 |---|---|---|---|---|
 | Manifold | 23.82e-6/h | 0.209 | Silva & Guedes Soares 2025 (OREDA 2022) | all failure modes |
 | Manifold (cross-check) | 41.4e-6/h | 0.363 | Liu et al. 2024 (OREDA 2015) | 23 components, series |
-| X-mas tree | 2.46e-7/h (upper 2.05e-6) | 0.0022 (0.018) | Bai & Bai Table 11-14 (OREDA 2002) | 8 components, **no controls** |
-| Rigid flowline | 2.4e-4 per km-yr | 0.0036 for 15 km | DNV GL 2017 via Silva 2025 | small diameter |
+| Tree, structure and valves | 2.46e-7/h (upper 2.05e-6) | 0.0022 (0.018) | Bai & Bai Table 11-14 (OREDA 2002) | 8 components |
+| Tree SCM (controls) | 8.24e-6/h | 0.072 | Mahmoudi et al. 2021 Table 7 (OREDA) | critical, one of each component |
+| **Tree total (base)** | 8.49e-6/h | **0.074** | sum of the two rows above | |
+| Well control system (cross-check) | 2.6-4.2e-5/h | 0.23-0.37 | IRF 2018 (OREDA) | incl. topside MCS |
+| Rigid flowline | 2.4e-4 per km-yr | | DNV GL 2017 via Silva 2025 | small diameter |
 | Flexible flowline | 2.1e-3 per km-yr | | DNV GL 2017 via Silva 2025 | |
-| Umbilical, SCM | none yet | | | |
+| Umbilical | none yet | | | |
 
-**Warning: the rates are not on the same basis.** The manifold rate (all OREDA failure modes, 2015/2022)
-is about 100 times the tree rate (OREDA 2002, eight structural/valve components, no controls).
-Used as-is, this would overstate the advantage of spreading wells over several manifolds. A whole-tree
-rate (including the control module) from OREDA 2015/2022 is needed, or both rates should be limited to
-critical failures that stop production.
+Consistency: with the SCM included, manifold/tree = 0.209/0.074, about 3 (was about 100 without controls).
+The manifold rate counts all failure modes while the SCM rate counts critical failures only, so the
+manifold rate is probably still high relative to the tree. Test with the sensitivity analysis.
 
 ## Still needed
 
-- Failure rates (lambda): **umbilical, subsea control module, and a whole-tree rate** (incl. controls) on the same
-  OREDA basis as the manifold rate. Ideally critical-failure rates only. Sources: published papers/theses quoting OREDA (2009 or later editions); PARLOC
+- Failure rates (lambda): **umbilical** (static, dynamic, UTA). A critical-only manifold rate would also help. Sources: published papers/theses quoting OREDA (2009 or later editions); PARLOC
   (UK pipeline and riser loss of containment) for flowlines, see Bai p. 300.
 - Repair durations and vessel waiting/mobilization times.
 - Common cost year: escalate Kaiser (2014) and Bai (2007/2009) to one year.
