@@ -44,10 +44,30 @@ CONFIG_DIR = REPO_ROOT / "config"
 DEFAULT_CONFIG = CONFIG_DIR / "base_case.yaml"
 
 
+def _merge(base: dict, over: dict) -> dict:
+    """Deep merge: values in ``over`` replace those in ``base``; a parameter node
+    (dict with 'value') is replaced as a whole."""
+    out = dict(base)
+    for k, v in over.items():
+        if isinstance(v, dict) and isinstance(out.get(k), dict) and not _is_param(v):
+            out[k] = _merge(out[k], v)
+        else:
+            out[k] = v
+    return out
+
+
 def load_config(path: str | Path = DEFAULT_CONFIG) -> dict[str, Any]:
-    """Read a parameter YAML file and remember where it came from."""
+    """Read a parameter YAML file and remember where it came from.
+
+    A file may start with ``_extends: other.yaml`` (path relative to the file): it then
+    holds only the parameters that differ from that base file.
+    """
     path = Path(path)
     cfg = read_yaml(path)
+    if "_extends" in cfg:
+        base = load_config(path.parent / cfg.pop("_extends"))
+        base.pop("_config_dir", None)
+        cfg = _merge(base, cfg)
     cfg["_config_dir"] = str(path.parent)
     return cfg
 

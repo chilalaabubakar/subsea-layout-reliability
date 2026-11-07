@@ -21,3 +21,11 @@ def test_distances():
     assert math.isclose(f.length("M", "H"), 4000.0)
     f2 = build_field(data, length_factor=1.1)
     assert math.isclose(f2.length("M", "H"), 4400.0)
+
+
+def test_solveig_field_from_sodir():
+    from layout_rel.config import CONFIG_DIR, field_path, load_config
+    from layout_rel.layout import load_field
+    f = load_field(field_path(load_config(CONFIG_DIR / "solveig_case.yaml")))
+    assert len(f.wells) == 6 and len(f.sites) == 4
+    assert 18_000 < f.length("M_ACT", f.host) < 19_500        # tie-back to Edvard Grieg ~18.7 km

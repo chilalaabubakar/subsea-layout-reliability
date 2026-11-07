@@ -1,0 +1,14 @@
+# North Sea case study (work plan step 9): Solveig field, 6 producing wells, host Edvard Grieg.
+# Only parameters that differ from base_case.yaml are listed here.
+_extends: base_case.yaml
+
+field_file:
+  value: field_solveig.yaml
+  unit: "-"
+  source: "Generated from Sodir fact pages by scripts/prepare_solveig.py (see config/field_solveig.yaml)."
+
+production:
+  well_rate:
+    value: 6361.0
+    unit: bbl/day per well (plateau, all wells equal)
+    source: "Sodir field_production_monthly, SOLVEIG, median net oil Apr 2023 - Aug 2025 (3034 Sm3/d) / 3 phase-1 producers = 1011 Sm3/d = 6361 bbl/d per well (scripts/prepare_solveig.py). Oil only; Solveig gas is not counted (conservative)."

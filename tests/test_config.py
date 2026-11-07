@@ -16,3 +16,13 @@ def test_scientific_notation_is_float(cfg):
 def test_param_rejects_non_parameter(cfg):
     with pytest.raises(KeyError):
         param(cfg, "capex")
+
+
+def test_extends_overrides_only_listed_params():
+    from layout_rel.config import CONFIG_DIR, load_config
+    base = load_config()
+    case = load_config(CONFIG_DIR / "solveig_case.yaml")
+    assert param(case, "field_file") == "field_solveig.yaml"
+    assert param(case, "production.well_rate") != param(base, "production.well_rate")
+    assert param(case, "capex.manifold.sit") == param(base, "capex.manifold.sit")   # inherited
+    assert param(case, "production.oil_price") == param(base, "production.oil_price")
