@@ -284,6 +284,23 @@ was available (front matter and Ch. 1-2).
   Fig. 3-9 to 3-11, pp. 57-59) and analyses a manifold lift at Hs = 2 m, Tp = 8 s (Table 6-1). Not in the
   preview; the Hs limit in our config remains a placeholder.
 
+## DNV-ST-N001 (Dec. 2023), Marine operations and marine warranty: definitions (Sec. 1)
+
+DNV (2023). DNV-ST-N001 *Marine operations and marine warranty*, edition December 2023. DNV AS.
+So far only the change log and Sec. 1 have been read.
+
+- Table 1-4: "weather window - period that the forecasted environmental conditions are less than or equal
+  to OPWF (the 'forecast operation criteria')"; "forecasted operational criteria ... For a 'weather
+  restricted operation/voyage' these equal the 'operational limiting criteria' multiplied by an 'alpha
+  factor'"; "alpha factor - factor applied to the 'operational limiting criteria' to account for weather
+  forecasting inaccuracies, see [2.6.9]"; "operation reference period - 'planned operation period', plus the
+  contingency period, see [2.6.2] to [2.6.4]"; "planned operation period - ... 'safe to safe' duration ...
+  excludes the contingency period".
+- Sec. 1.6.3 symbols: OPLIM, OPWF, TPOP, TC, TR = TPOP + TC.
+- Use for our weather model: a repair needs a window of TR = repair time + contingency with
+  Hs <= alpha x OPLIM. Still needed: contingency rule [2.6.2]-[2.6.4], weather-restricted limits [2.6.7],
+  alpha factors [2.6.9]-[2.6.11] (Table 2-5). OPLIM itself is vessel-specific (not in the standard).
+
 ## Failure-rate summary (candidates for step 5)
 
 | Component | Rate | Per year | Source | Basis |
