@@ -120,6 +120,14 @@ def placeholders(cfg: dict[str, Any]) -> list[str]:
             if "PLACEHOLDER" in str(p.get("source", "")).upper()]
 
 
+def results_dir(cfg_path: str | Path) -> Path:
+    """results/ for the base case, results/<config name>/ for any other case config."""
+    stem = Path(cfg_path).stem
+    out = REPO_ROOT / "results" if stem == DEFAULT_CONFIG.stem else REPO_ROOT / "results" / stem
+    out.mkdir(parents=True, exist_ok=True)
+    return out
+
+
 def field_path(cfg: dict[str, Any]) -> Path:
     """Path of the field geometry file referenced by the config."""
     return Path(cfg["_config_dir"]) / param(cfg, "field_file")

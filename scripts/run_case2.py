@@ -13,7 +13,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from layout_rel.config import DEFAULT_CONFIG, REPO_ROOT, field_path, load_config, param, placeholders
+from layout_rel.config import DEFAULT_CONFIG, field_path, load_config, param, placeholders, results_dir
 from layout_rel.economics import npv_breakdown
 from layout_rel.layout import load_field
 from layout_rel.maintenance import expected_failure_cost
@@ -86,7 +86,7 @@ def main(cfg_path=DEFAULT_CONFIG):
     print("\nWhere does the optimal layout change? (one parameter at a time)")
     print(sc.to_string(index=False, float_format=lambda v: f"{v:,.2f}"))
 
-    out = REPO_ROOT / "results"
+    out = results_dir(cfg_path)
     df.to_csv(out / "case2_npv.csv", index=False)
     sc.to_csv(out / "case2_scan.csv", index=False)
 

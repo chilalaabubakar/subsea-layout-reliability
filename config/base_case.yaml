@@ -181,6 +181,10 @@ maintenance:
       value: 0.0
       unit: days (expected wait for a weather window, added to downtime)
       source: "Base case: 0, weather handled by weather_allowance (Bai & Bai 2010 Fig. 6-18). The North Sea case sets it from the NORA3 hindcast (scripts/weather_windows.py)."
+    weather_critical_lifts:
+      value: 1
+      unit: "- (lifts through the splash zone that need a DNV weather window)"
+      source: "Assumption: one weather-critical lift (SCM/module retrieval and reinstallation in one splash-zone sequence); ROV work tolerates higher sea states."
     spare_cost:
       value: 1.703e+6
       unit: USD per failure (2007 USD)
@@ -198,6 +202,10 @@ maintenance:
       value: 0.0
       unit: days (expected wait for a weather window, added to downtime)
       source: "Base case: 0, weather handled by weather_allowance (Bai & Bai 2010 Fig. 6-18). The North Sea case sets it from the NORA3 hindcast (scripts/weather_windows.py)."
+    weather_critical_lifts:
+      value: 2
+      unit: "- (lifts through the splash zone that need a DNV weather window)"
+      source: "Assumption: two weather-critical lifts (recover module/insert, deploy replacement)."
     spare_cost:
       value: 1.104e+6
       unit: USD per failure (2007 USD)
@@ -215,6 +223,10 @@ maintenance:
       value: 0.0
       unit: days (expected wait for a weather window, added to downtime)
       source: "Base case: 0, weather handled by weather_allowance (Bai & Bai 2010 Fig. 6-18). The North Sea case sets it from the NORA3 hindcast (scripts/weather_windows.py)."
+    weather_critical_lifts:
+      value: 2
+      unit: "- (lifts through the splash zone that need a DNV weather window)"
+      source: "Assumption: two weather-critical lifts (recover damaged section, deploy repair spool/clamp)."
     spare_cost:
       value: 0.59e+6
       unit: USD per failure (2009 USD)
@@ -232,6 +244,10 @@ maintenance:
       value: 0.0
       unit: days (expected wait for a weather window, added to downtime)
       source: "Base case: 0, weather handled by weather_allowance (Bai & Bai 2010 Fig. 6-18). The North Sea case sets it from the NORA3 hindcast (scripts/weather_windows.py)."
+    weather_critical_lifts:
+      value: 2
+      unit: "- (lifts through the splash zone that need a DNV weather window)"
+      source: "Assumption: two weather-critical lifts (recover damaged section, deploy replacement section)."
     spare_cost:
       value: 1.52e+6
       unit: USD per failure (2007 USD)
@@ -380,6 +396,14 @@ weather:
     value: 2.0
     unit: m (significant wave height limit for heavy lifts through the splash zone)
     source: "PLACEHOLDER - assumed; needs a source (vessel or DNV marine-operations criteria)."
+  critical_mode:
+    value: lifts
+    unit: "- ('lifts': only splash-zone lifts need a window (base); 'whole': the whole active repair (upper bound))"
+    source: "Modelling choice (step 9). DNV-ST-N001 [2.6.8.2]: OP_LIM follows equipment limits (ROV, cranes); lifting is the most weather-sensitive step."
+  lift_duration:
+    value: 12.0
+    unit: h (planned operation period T_POP of one lift, incl. deck handling, splash zone, lowering, landing)
+    source: "PLACEHOLDER - assumed; needs a source (operation procedure or vessel/contractor data)."
   alpha_table:
     value:
       tpop_rows: [12, 24, 36, 48, 72]
