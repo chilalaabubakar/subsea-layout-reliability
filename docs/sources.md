@@ -258,6 +258,32 @@ re-optimization method based on multi-agent deep reinforcement learning. *Expert
 - Table 1 "failure rate/month" values (MCS 0.089, EPU 0.0127, HPU 0.06, SCM 0.018, umbilical 0.0044) are
   **degradation-model parameters** simulated from OREDA, not failure rates. Not used as lambda.
 
+## Harahap (2019), NTNU MSc thesis: OREDA subsea data fields (no values)
+
+Harahap, V.A. (2019). *Recommendations to Improve the Quality and the Automation of the OREDA Data
+Process*. MSc thesis, NTNU, Department of Mechanical and Industrial Engineering.
+
+- Sec. 2 (p. 20-21): OREDA subsea failure events record "type of main intervention vessel", "main vessel
+  time" (on location, "excluding sailing, waiting and idle time"), support vessel and time, maintenance
+  resource (diver or ROV), and "Mobilization time: records number of days required to mobilize the
+  intervention vessel until it is ready". Downtime is "calendar time ... which includes the mobilization of
+  resources or spare and all the preparation".
+- Use: supports the structure of our downtime model (mobilisation + waiting + active repair are recorded
+  separately in OREDA). Gives no numeric values.
+
+## Hjelle (2018), UiS MSc thesis (preview, Ch. 1-2 only): qualitative
+
+Hjelle, E.I. (2018). MSc thesis, Marine & offshore technology / Marine operations, University of
+Stavanger (pendulum installation method for subsea hardware in ultradeep water). Only a 24-page preview
+was available (front matter and Ch. 1-2).
+
+- p. 11: installation cost drivers are "the time spent on the operation, and the cost of the vessels
+  available in the region", hence vessels "with low day-rates" and "low mobilisation cost" are preferred;
+  "there is a significant probability of long periods of waiting on weather".
+- The full thesis cites DNV-OS-H101 (2011) alpha-factor tables and required weather windows (thesis
+  Fig. 3-9 to 3-11, pp. 57-59) and analyses a manifold lift at Hs = 2 m, Tp = 8 s (Table 6-1). Not in the
+  preview; the Hs limit in our config remains a placeholder.
+
 ## Failure-rate summary (candidates for step 5)
 
 | Component | Rate | Per year | Source | Basis |
