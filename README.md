@@ -19,7 +19,7 @@ expected cost of failures. See `CLAUDE.md` for the full project brief and work p
 | 6 | Failure cost in the MILP, NPV objective (cases 2-3) | done |
 | 7 | Monte Carlo check + risk-averse (CVaR) layouts | done |
 | 8 | Sensitivity analysis (tornado, switching map) | done |
-| 9 | Realistic North Sea case | next |
+| 9 | Realistic North Sea case (Solveig, Sodir data; NORA3 weather, DNV-ST-N001) | in progress |
 | 10 | Figures and tables for the report | to do |
 
 > Cost data: lines from Kaiser (2016); trees, manifolds and vessel rates from Bai & Bai (2010) Ch. 6.
@@ -104,6 +104,20 @@ Liu et al. interval, Thies et al. 90 % interval, Kaiser range, own assumptions).
 set to low and high one at a time; case 1 and case 2 are re-solved and the NPV change, the
 failure-cost change and any layout change are reported. `run_step8.py` also maps the
 optimal number of manifolds over vessel mobilisation time x manifold failure rate.
+
+## North Sea case (step 9)
+
+- Field: Solveig (6 producers, real manifold, 18.7 km tie-back to Edvard Grieg), built from Sodir
+  open data by `scripts/prepare_solveig.py` -> `config/field_solveig.yaml`, case `config/solveig_case.yaml`.
+- Weather: hourly Hs 2014-2023 from the MET Norway NORA3 hindcast (`scripts/download_nora3_hs.py`).
+  `scripts/weather_windows.py` computes the expected wait for a weather window per repair type following
+  DNV-ST-N001 (alpha factors Table 2-4, T_R = 2 T_POP, T_C >= 6 h, phases < 48 h) and writes the
+  generated case configs `config/solveig_weather*.yaml` (year-round, winter, summer, whole-repair bound).
+
+```bash
+python scripts/weather_windows.py
+python scripts/run_case2.py config/solveig_weather.yaml
+```
 
 ## Conventions
 

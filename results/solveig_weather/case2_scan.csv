@@ -1,0 +1,12 @@
+parameter,value,case 2 manifolds,case 2 layout,NPV gain vs case-1 layout [MUSD]
+mobilisation time x,0.5,1,M_CEN(6-slot: 6 wells),0.0
+mobilisation time x,1.0,1,M_CEN(6-slot: 6 wells),0.0
+mobilisation time x,1.5,1,M_CEN(6-slot: 6 wells),0.0
+mobilisation time x,2.0,1,M_CEN(6-slot: 6 wells),0.0
+mobilisation time x,3.0,1,M_CEN(6-slot: 6 wells),0.0
+mobilisation time x,4.0,1,M_CEN(6-slot: 6 wells),0.0
+manifold failure rate x,0.5,1,M_CEN(6-slot: 6 wells),0.0
+manifold failure rate x,1.0,1,M_CEN(6-slot: 6 wells),0.0
+manifold failure rate x,2.0,1,M_CEN(6-slot: 6 wells),0.0
+manifold failure rate x,3.0,2,M_BG(2-slot: 2 wells) + M_CEN(4-slot: 4 wells),2.4622177738075255
+manifold failure rate x,4.0,2,M_BG(2-slot: 2 wells) + M_CEN(4-slot: 4 wells),33.02335262796879
