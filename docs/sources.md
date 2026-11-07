@@ -148,10 +148,69 @@ versus Failure Mode, Wellhead & Xmas Tree", OREDA p. 835 (Bai ref. [2]).
   (corrosion, trawling, free span, etc.) and no numeric rates. They are not usable as lambda.
 - p. 304: OREDA also gives active repair time per component (hours), which could be used for repair durations.
 
+## Silva & Guedes Soares (2025): manifold failure rate (OREDA 2022) and pipeline failure frequencies (DNV GL 2017)
+
+Silva, L.M.R., Guedes Soares, C. (2025). Optimisation of offshore oilfield development including the
+risk of failure of subsea manifolds. *Ocean Engineering* 324, 120668.
+https://doi.org/10.1016/j.oceaneng.2025.120668 (open access, CC BY-NC-ND 4.0)
+
+- p. 7, Sec. 4.3: manifold failure rate "according to the OREDA (2022), equals **23.82 (per 10^6 h)**"
+  = 0.209 per year, MTTF about 4.8 years. Used for every slot size (their stated limitation, Sec. 6).
+- Table 2 (from DNV GL 2017, *Recommended Failure Rates for Pipelines*), small-diameter
+  (50.8-406.4 mm) subsea pipelines: **rigid 2.4e-4 per km-year**, **flexible 2.1e-3 per km-year**.
+- Eq. 47 (DNV GL 2017): FF = f_km x length + f_pipeline + f_dragged_anchor, with f_km = 4.4e-4 per km-year,
+  f_pipeline = 2.3e-3, f_dragged_anchor = 1.9e-7 (units as printed in the paper).
+- Sec. 2.2-2.3: OREDA (2022) manifold failure modes; most failing components are connectors, piping and
+  valves; "valve, process isolation" most critical; most common mode "external leakage - process medium".
+- Table 8 case: 25 wells, 6000 bbl/d plateau per well, 70 USD/bbl, 13 manifold sites, 2 platforms.
+- See `docs/literature.md` for how this model differs from ours.
+
+## Liu et al. (2024): manifold component failure rates (OREDA 2015), cross-check
+
+Liu, C., Zhou, C., Tan, L., Cui, J., Xiao, W., Liu, J., Wang, H., Wang, T. (2024). Reliability analysis
+of subsea manifold system using FMECA and FFTA. *Scientific Reports* 14, 22873.
+https://doi.org/10.1038/s41598-024-73410-y (open access)
+
+- Table 6: 23 bottom-event failure rates (mean m, in 10^-6/h) from OREDA 2015 6th ed. Vol. II
+  (their refs. 44-45). Largest: X12 10.64, X4 5.67, X14 4.51, X11 4.21, X8 3.31 (codes in Table 5).
+- Sum of the means = 41.44e-6/h, which equals their top-event result F = 0.0000415 (Eq. 32, lambda-cut = 1):
+  the fault tree is effectively a series system. That is **0.363 per year**, MTTF about 2.8 years.
+- Fuzzy interval [0.1185e-4, 0.6734e-4] per hour (lambda-cut = 0), i.e. 0.10-0.59 per year. Useful
+  range for sensitivity.
+- Includes pigging module and insulation failures, not all of which stop production.
+
+## Østebø, Kallestad & Grytdal (2001): qualitative only
+
+Østebø, R., Kallestad, O., Grytdal, I. (2001). Subsea reliability - success factors for sustainable
+deepwater concept development. OTC 13290, Offshore Technology Conference, Houston.
+
+- No usable numeric failure rates in the text (choke MTBF is shown only as a graph, Fig. 6).
+- Åsgard: 16 manifolds with about 50 valves each; the flow control module "can be replaced from a monohull
+  vessel in less than 48 hours" (possible evidence for a short repair time on light-vessel interventions).
+- Fig. 2: reliability in a life-cycle-cost view (CAPEX + OPEX + regularity loss "REGEX"). Good for the
+  introduction.
+
+## Failure-rate summary (candidates for step 5)
+
+| Component | Rate | Per year | Source | Basis |
+|---|---|---|---|---|
+| Manifold | 23.82e-6/h | 0.209 | Silva & Guedes Soares 2025 (OREDA 2022) | all failure modes |
+| Manifold (cross-check) | 41.4e-6/h | 0.363 | Liu et al. 2024 (OREDA 2015) | 23 components, series |
+| X-mas tree | 2.46e-7/h (upper 2.05e-6) | 0.0022 (0.018) | Bai & Bai Table 11-14 (OREDA 2002) | 8 components, **no controls** |
+| Rigid flowline | 2.4e-4 per km-yr | 0.0036 for 15 km | DNV GL 2017 via Silva 2025 | small diameter |
+| Flexible flowline | 2.1e-3 per km-yr | | DNV GL 2017 via Silva 2025 | |
+| Umbilical, SCM | none yet | | | |
+
+**Warning: the rates are not on the same basis.** The manifold rate (all OREDA failure modes, 2015/2022)
+is about 100 times the tree rate (OREDA 2002, eight structural/valve components, no controls).
+Used as-is, this would overstate the advantage of spreading wells over several manifolds. A whole-tree
+rate (including the control module) from OREDA 2015/2022 is needed, or both rates should be limited to
+critical failures that stop production.
+
 ## Still needed
 
-- Failure rates (lambda): **manifold, flowline, umbilical, subsea control module** (tree done, Bai Table 11-14,
-  but without controls). Sources: published papers/theses quoting OREDA (2009 or later editions); PARLOC
+- Failure rates (lambda): **umbilical, subsea control module, and a whole-tree rate** (incl. controls) on the same
+  OREDA basis as the manifold rate. Ideally critical-failure rates only. Sources: published papers/theses quoting OREDA (2009 or later editions); PARLOC
   (UK pipeline and riser loss of containment) for flowlines, see Bai p. 300.
 - Repair durations and vessel waiting/mobilization times.
 - Common cost year: escalate Kaiser (2014) and Bai (2007/2009) to one year.
