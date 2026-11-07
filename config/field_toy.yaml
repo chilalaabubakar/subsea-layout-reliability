@@ -1,0 +1,21 @@
+# Made-up field for model development (work plan step 2).
+# Coordinates in metres on a local grid (x = east, y = north).
+# Replace with a realistic case in work plan step 9.
+name: Toy field (6 wells, 3 candidate manifold sites)
+water_depth_m: 1500   # not used yet; deepwater Tanzania-style assumption
+host:
+  name: HOST
+  type: FPSO
+  x: 0.0
+  y: -15000.0
+wells:
+  - {name: W1, x: -4000.0, y:  2000.0}
+  - {name: W2, x: -3500.0, y: -1000.0}
+  - {name: W3, x: -2000.0, y:   500.0}
+  - {name: W4, x:  2000.0, y:  1500.0}
+  - {name: W5, x:  3000.0, y:  -500.0}
+  - {name: W6, x:  4500.0, y:  1000.0}
+manifold_sites:
+  - {name: M1, x: -3000.0, y:  500.0}
+  - {name: M2, x:     0.0, y:    0.0}
+  - {name: M3, x:  3000.0, y:  600.0}
