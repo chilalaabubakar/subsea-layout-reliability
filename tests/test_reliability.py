@@ -21,3 +21,10 @@ def test_line_rate_scales_with_length(cfg):
     r1, r2 = rate(cfg, "tieback_flowline", 1000.0), rate(cfg, "tieback_flowline", 15000.0)
     assert math.isclose(r2 / r1, 15.0)
     assert math.isclose(r1 * YEAR, 2.4e-4)          # 1 km -> 2.4e-4 per year
+
+
+def test_manifold_rate_grows_with_slots(cfg):
+    from layout_rel.config import param
+    ref = param(cfg, "reliability.manifold.failure_rate_per_h")
+    assert math.isclose(rate(cfg, "manifold", slots=4), ref)
+    assert rate(cfg, "manifold", slots=2) < ref < rate(cfg, "manifold", slots=6)

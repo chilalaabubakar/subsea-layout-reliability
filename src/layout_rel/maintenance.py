@@ -73,13 +73,14 @@ class FailureCostSummary:
         return self.repair_cost + self.lost_production
 
 
-def expected_failure_cost(field: Field, cfg: dict, assignment: dict[str, str]) -> FailureCostSummary:
+def expected_failure_cost(field: Field, cfg: dict, assignment: dict[str, str],
+                          sizes: dict[str, int] | None = None) -> FailureCostSummary:
     """Expected yearly failure cost of a layout (plateau production, undiscounted)."""
     keys = ("failures", "repair_cost", "lost_volume", "lost_production")
     total = dict.fromkeys(keys, 0.0)
     by_kind: dict[str, dict[str, float]] = {}
     down = dict.fromkeys(field.wells, 0.0)
-    for mode in failure_modes(field, cfg, assignment):
+    for mode in failure_modes(field, cfg, assignment, sizes):
         c = mode_cost(cfg, mode)
         label = mode.name.split()[0] if not mode.name.startswith(("infield", "tieback")) \
             else " ".join(mode.name.split()[:2])
@@ -96,43 +97,52 @@ def expected_failure_cost(field: Field, cfg: dict, assignment: dict[str, str]) -
 
 @dataclass
 class FailureCostCoefficients:
-    """Linear form of the yearly failure cost, for the MILP (step 6).
+    """Linear form of the failure cost, for the MILP.
 
-    cost/yr = constant + sum_s open[s] * site[s] + sum_{w,s} assign[w,s] * connect[w,s]
+    cost = constant
+         + sum_s      open[s]        * site[s]            (tie-back repair)
+         + sum_{s,k}  size[s,k]      * site_size[s,k]     (manifold repair, depends on slots)
+         + sum_{w,s}  assign[w,s]    * connect[w,s]       (well's infield lines + its tie-back loss)
+         + sum_{w,s,k} z[w,s,k]      * connect_size[w,s,k] (well's loss when its k-slot manifold fails)
 
-    ``connect[w,s]`` includes the well's own infield lines AND its share of lost
-    production when the manifold or tie-back at s fails (that loss grows with every
-    well added to s, which is why it can sit on the assign variable and stay linear).
+    with z[w,s,k] = assign[w,s] * size[s,k] (linearised in the optimizer).
+    Each repair term is multiplied by ``repair_weight`` and each lost-production
+    term by ``production_weight`` (1 and 1 = one plateau year, undiscounted;
+    the NPV model passes discounted sums over field life).
     """
-    constant: float                          # trees (same in every layout)
-    site: dict[str, float]                   # repair cost of manifold + tie-back if s is open
-    per_well: dict[str, float]               # site-failure lost production per (Sm3/s) of well rate; reporting only
-    connect: dict[tuple[str, str], float]    # see above
+    constant: float
+    site: dict[str, float]
+    site_size: dict[tuple[str, int], float]
+    connect: dict[tuple[str, str], float]
+    connect_size: dict[tuple[str, str, int], float]
 
 
-def failure_cost_coefficients(field: Field, cfg: dict) -> FailureCostCoefficients:
+def failure_cost_coefficients(field: Field, cfg: dict, repair_weight: float = 1.0,
+                              production_weight: float = 1.0) -> FailureCostCoefficients:
+    from .economics import manifold_sizes
     price = param(cfg, "production.oil_price")
-    tree = repair(cfg, REPAIR_KIND["xmas_tree"])
-    lam_tree = rate(cfg, "xmas_tree") * YEAR
-    constant = sum(lam_tree * (tree.cost + tree.downtime * well_rate(cfg, w) * price) for w in field.wells)
+    wr, wp = repair_weight * YEAR, production_weight * YEAR     # rate [1/s] -> per weighted year
 
-    site, per_well = {}, {}
+    def cost(comp: str, wells_rate: float, **kw) -> tuple[float, float]:
+        r, lam = repair(cfg, REPAIR_KIND[comp]), rate(cfg, comp, **kw)
+        return lam * wr * r.cost, lam * wp * r.downtime * wells_rate * price
+
+    constant = sum(sum(cost("xmas_tree", well_rate(cfg, w))) for w in field.wells)
+    site, site_size, connect, connect_size = {}, {}, {}, {}
     for s in field.sites:
         L = field.length(s, field.host)
-        site[s] = per_well[s] = 0.0
-        for comp in ("manifold", "tieback_flowline", "tieback_umbilical"):
-            r, lam = repair(cfg, REPAIR_KIND[comp]), rate(cfg, comp, L) * YEAR
-            site[s] += lam * r.cost
-            per_well[s] += lam * r.downtime * price      # x well rate, added below per well
-    connect = {}
+        site[s] = (cost("tieback_flowline", 0.0, length=L)[0]
+                   + cost("tieback_umbilical", 0.0)[0])
+        for k in manifold_sizes(cfg):
+            site_size[s, k] = cost("manifold", 0.0, slots=k)[0]
     for w in field.wells:
         q = well_rate(cfg, w)
         for s in field.sites:
-            L = field.length(w, s)
-            c = 0.0
-            for comp in ("infield_flowline", "infield_umbilical"):
-                r, lam = repair(cfg, REPAIR_KIND[comp]), rate(cfg, comp, L) * YEAR
-                c += lam * (r.cost + r.downtime * q * price)
-            connect[w, s] = c + per_well[s] * q
-    return FailureCostCoefficients(constant=constant, site=site,
-                                   per_well={s: per_well[s] for s in field.sites}, connect=connect)
+            Lw, Ls = field.length(w, s), field.length(s, field.host)
+            connect[w, s] = (sum(cost("infield_flowline", q, length=Lw))
+                             + sum(cost("infield_umbilical", q))
+                             + cost("tieback_flowline", q, length=Ls)[1]
+                             + cost("tieback_umbilical", q)[1])
+            for k in manifold_sizes(cfg):
+                connect_size[w, s, k] = cost("manifold", q, slots=k)[1]
+    return FailureCostCoefficients(constant, site, site_size, connect, connect_size)

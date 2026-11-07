@@ -32,11 +32,13 @@ def test_grouping_raises_lost_production_per_manifold_failure(field, cfg):
 
 
 def test_coefficients_match_direct_calculation(field, cfg):
+    from layout_rel.economics import smallest_size
     c = failure_cost_coefficients(field, cfg)
     for assignment in ({w: "M2" for w in field.wells},
                        {"W1": "M1", "W2": "M1", "W3": "M1", "W4": "M3", "W5": "M3", "W6": "M3"},
                        {"W1": "M1", "W2": "M1", "W3": "M2", "W4": "M2", "W5": "M3", "W6": "M3"}):
         direct = expected_failure_cost(field, cfg, assignment).total
-        linear = (c.constant + sum(c.site[s] for s in set(assignment.values()))
-                  + sum(c.connect[w, s] for w, s in assignment.items()))
+        sizes = {s: smallest_size(cfg, list(assignment.values()).count(s)) for s in set(assignment.values())}
+        linear = (c.constant + sum(c.site[s] + c.site_size[s, k] for s, k in sizes.items())
+                  + sum(c.connect[w, s] + c.connect_size[w, s, sizes[s]] for w, s in assignment.items()))
         assert math.isclose(direct, linear, rel_tol=1e-9)

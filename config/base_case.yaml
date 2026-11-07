@@ -130,7 +130,15 @@ reliability:
     failure_rate_per_h:
       value: 23.82e-6
       unit: 1/h per manifold (same for all slot sizes)
-      source: "Silva & Guedes Soares (2025), Ocean Eng. 324, 120668, Sec. 4.3: OREDA (2022) manifold failure rate 23.82 per 10^6 h. All failure modes. Cross-check: Liu et al. (2024) Sci. Rep. 14:22873, Table 6 sum = 41.4e-6/h (OREDA 2015)."
+      source: "Silva & Guedes Soares (2025), Ocean Eng. 324, 120668, Sec. 4.3: OREDA (2022) manifold failure rate 23.82 per 10^6 h. All failure modes. Cross-check: Liu et al. (2024) Sci. Rep. 14:22873, Table 6 sum = 41.4e-6/h (OREDA 2015). Applies to a manifold of `reference_slots`; scaled with slot count by `slot_fraction`."
+    reference_slots:
+      value: 4
+      unit: slots
+      source: "Assumption: the OREDA average manifold is taken as a 4-slot cluster manifold (the base unit in Bai & Bai 2010 p. 176 and in Silva & Guedes Soares 2025 Sec. 4.3)."
+    slot_fraction:
+      value: 0.493
+      unit: fraction of the reference rate that scales with slot count
+      source: "Liu et al. (2024) Sci. Rep. 14:22873, Table 6 means (Table 5 codes). Our classification: per-slot branch items X1, X2, X3 (couplers/connector), X8-X12, X18, X19 (valves) = 20.42 of 41.44 per 10^6 h. Fixed: insulation, header pipe, structures, pigging module, base. Rate(k) = rate_ref * ((1 - f) + f * k / reference_slots)."
   infield_flowline:
     failure_rate_per_km:
       value: 2.4e-4
@@ -212,6 +220,29 @@ maintenance:
       value: 1.52e+6
       unit: USD per failure (2007 USD)
       source: "Assumption: replace 1 km of umbilical at Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing Table 6-6 procurement rate (11,606,659 USD / 25,000 ft = 1523 USD/m)."
+
+# Field-life economics (NPV). CAPEX at t = 0, production years t = 1..field_life.
+economics:
+  field_life:
+    value: 20.0
+    unit: yr
+    source: "Own assumption (CLAUDE.md). Bai & Bai (2010) p. 183: well production life 'about 5 to 20 years'; Østebø et al. (2001): Åsgard minimum life 20 years."
+  discount_rate:
+    value: 0.10
+    unit: fraction per year
+    source: "Own assumption (CLAUDE.md); same as Sales, Stanko & Jäschke (2023) Table C.1 (r = 10 %)."
+  plateau_years:
+    value: 3.0
+    unit: yr
+    source: "Own assumption (CLAUDE.md): plateau length before decline. Tested in sensitivity."
+  decline_rate:
+    value: 0.12
+    unit: fraction per year (exponential, after plateau)
+    source: "Own assumption (CLAUDE.md). Tested in sensitivity."
+  opex_fraction_of_capex:
+    value: 0.03
+    unit: fraction of CAPEX per year (planned OPEX excl. failures)
+    source: "PLACEHOLDER - no source yet; failure-related OPEX is modelled separately (maintenance)."
 
 routing:
   length_factor:

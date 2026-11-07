@@ -16,8 +16,9 @@ expected cost of failures. See `CLAUDE.md` for the full project brief and work p
 | 3 | `economics.py`: CAPEX model | done |
 | 4 | `optimizer.py`: CAPEX-only MILP (case 1) | done |
 | 5 | `reliability.py` + `maintenance.py`: expected failure cost per component | done |
-| 6 | Failure cost in the MILP, NPV objective (case 2) | next |
-| 7-10 | Monte Carlo, sensitivity, realistic case, figures | to do |
+| 6 | Failure cost in the MILP, NPV objective (cases 2-3) | done |
+| 7 | Monte Carlo + risk measure (CVaR) | next |
+| 8-10 | Sensitivity, realistic case, figures | to do |
 
 > Cost data: lines from Kaiser (2016); trees, manifolds and vessel rates from Bai & Bai (2010) Ch. 6.
 > Details, page numbers and ranges are in `docs/sources.md`. Costs are not yet escalated to one year.
@@ -36,6 +37,7 @@ pip install -e .                 # makes `import layout_rel` work everywhere
 ```bash
 python scripts/run_case1.py         # case 1: CAPEX-only optimal layout
 python scripts/run_failure_cost.py  # step 5: expected yearly failure cost of candidate layouts
+python scripts/run_case2.py         # cases 2-3: NPV-optimal layout incl. failures vs case 1
 pytest                           # run the tests
 ```
 
@@ -72,6 +74,15 @@ downtime = vessel mobilisation + repair days x (1 + weather allowance); repair c
 day rate x downtime + spare part; lost production = downtime x rate of the stopped wells x oil
 price. Expected yearly cost = sum of rate x (repair cost + lost production).
 `maintenance.failure_cost_coefficients` gives the same cost in linear form for the MILP.
+
+## NPV model (case 2)
+
+NPV = PV(revenue) - CAPEX - PV(OPEX) - PV(expected failure cost), CAPEX at t = 0, production
+years 1..N with a plateau then exponential decline, discount rate r. Lost production is treated
+as lost (not deferred). The manifold failure rate grows with slot count k:
+rate(k) = rate_ref x ((1 - f) + f x k / 4), with f = 0.493 (share of slot-related valves and
+couplers in Liu et al. 2024). Without this, expected lost production would not depend on how
+wells are grouped. The product assign x size is linearised with z >= assign + size - 1.
 
 ## Conventions
 

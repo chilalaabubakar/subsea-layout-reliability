@@ -12,6 +12,11 @@ Constant failure rates (exponential model, MTTF = 1/lambda). For a given layout
 
 This is the key link between reliability and layout: grouping wells on one
 manifold makes manifold and tie-back failures hit more wells at once.
+
+The manifold rate grows with slot count k (more branch valves and couplers):
+    rate(k) = rate_ref * ((1 - f) + f * k / k_ref)
+Without this, the EXPECTED lost production would not depend on grouping at all
+(n manifolds fail n times as often but each stops 1/n of the wells).
 """
 from __future__ import annotations
 
@@ -29,8 +34,20 @@ class FailureMode:
     wells: tuple[str, ...]    # wells that stop when it fails
 
 
-def rate(cfg: dict, component: str, length: float = 0.0) -> float:
-    """Failure rate [1/s] of one component; ``length`` [m] for line components."""
+def manifold_rate(cfg: dict, slots: int) -> float:
+    """Failure rate [1/s] of a manifold with ``slots`` slots."""
+    ref = param(cfg, "reliability.manifold.failure_rate_per_h")
+    f = param(cfg, "reliability.manifold.slot_fraction")
+    k_ref = param(cfg, "reliability.manifold.reference_slots")
+    return ref * ((1 - f) + f * slots / k_ref)
+
+
+def rate(cfg: dict, component: str, length: float = 0.0, slots: int | None = None) -> float:
+    """Failure rate [1/s] of one component; ``length`` [m] for lines, ``slots`` for manifolds."""
+    if component == "manifold":
+        if slots is None:
+            raise ValueError("manifold rate needs the slot count")
+        return manifold_rate(cfg, slots)
     node = cfg["reliability"][component]
     if "failure_rate_per_km" in node:
         return param(cfg, f"reliability.{component}.failure_rate_per_km") * length
@@ -62,11 +79,13 @@ def well_modes(field: Field, cfg: dict, well: str, site: str) -> list[FailureMod
     ]
 
 
-def site_modes(field: Field, cfg: dict, site: str, wells: tuple[str, ...]) -> list[FailureMode]:
-    """Failure modes of an open manifold site and its tie-back to the host."""
+def site_modes(field: Field, cfg: dict, site: str, wells: tuple[str, ...],
+               slots: int) -> list[FailureMode]:
+    """Failure modes of an open manifold site (``slots`` slots) and its tie-back to the host."""
     L = field.length(site, field.host)
     return [
-        FailureMode(f"manifold {site}", REPAIR_KIND["manifold"], rate(cfg, "manifold"), wells),
+        FailureMode(f"manifold {site}", REPAIR_KIND["manifold"], rate(cfg, "manifold", slots=slots),
+                    wells),
         FailureMode(f"tieback flowline {site}", REPAIR_KIND["tieback_flowline"],
                     rate(cfg, "tieback_flowline", L), wells),
         FailureMode(f"tieback umbilical {site}", REPAIR_KIND["tieback_umbilical"],
@@ -74,12 +93,18 @@ def site_modes(field: Field, cfg: dict, site: str, wells: tuple[str, ...]) -> li
     ]
 
 
-def failure_modes(field: Field, cfg: dict, assignment: dict[str, str]) -> list[FailureMode]:
-    """All failure modes of a layout given as {well: site}."""
+def failure_modes(field: Field, cfg: dict, assignment: dict[str, str],
+                  sizes: dict[str, int] | None = None) -> list[FailureMode]:
+    """All failure modes of a layout given as {well: site} and {site: slots}.
+
+    If ``sizes`` is omitted, each site gets the smallest manifold that fits its wells.
+    """
+    from .economics import smallest_size          # local import avoids a cycle
     modes: list[FailureMode] = []
     for w in field.wells:
         modes += well_modes(field, cfg, w, assignment[w])
     for s in sorted(set(assignment.values())):
         wells = tuple(w for w in field.wells if assignment[w] == s)
-        modes += site_modes(field, cfg, s, wells)
+        k = sizes[s] if sizes else smallest_size(cfg, len(wells))
+        modes += site_modes(field, cfg, s, wells, k)
     return modes

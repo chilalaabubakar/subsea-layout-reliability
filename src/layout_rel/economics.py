@@ -1,4 +1,4 @@
-"""Cost model. Currently: CAPEX only (OPEX and NPV come in work plan step 6).
+"""Cost model: CAPEX, OPEX and field-life NPV.
 
 CAPEX of a layout =
     trees      : n_wells * installed tree cost
@@ -105,4 +105,65 @@ def capex_breakdown(field: Field, cfg: dict, assignment: dict[str, str],
         "tieback_lines": sum(c.tieback[s] for s in count),
     }
     out["total"] = sum(out.values())
+    return out
+
+
+# ---------------------------------------------------------------- NPV (step 6)
+#
+# CAPEX is spent at t = 0; production years are t = 1..N (N = field_life).
+# Plateau rate for `plateau_years`, then exponential decline. Cash flows are
+# discounted with (1 + r)^-t at the end of each year.
+#
+#   NPV = PV(revenue) - CAPEX - PV(OPEX) - PV(expected failure cost)
+#   PV(failure cost) = repair cost/yr * A_rep + lost production/yr (at plateau) * A_prod
+#   A_rep  = sum_t DF_t            (failures happen at a constant rate)
+#   A_prod = sum_t DF_t * g_t      (g_t = production at t / plateau; loss scales with rate)
+#
+# Lost production is treated as lost, not deferred (conservative).
+
+def production_profile(cfg: dict) -> list[float]:
+    """g_t = production in year t relative to plateau, t = 1..N."""
+    from .units import YEAR
+    n = round(param(cfg, "economics.field_life") / YEAR)
+    plateau = param(cfg, "economics.plateau_years") / YEAR
+    d = param(cfg, "economics.decline_rate")
+    return [1.0 if t <= plateau else (1 - d) ** (t - plateau) for t in range(1, n + 1)]
+
+
+def discount_factors(cfg: dict) -> list[float]:
+    r = param(cfg, "economics.discount_rate")
+    return [(1 + r) ** -t for t in range(1, len(production_profile(cfg)) + 1)]
+
+
+def annuity_factors(cfg: dict) -> tuple[float, float]:
+    """(A_rep, A_prod): discounted sum of years, and of production-weighted years."""
+    df, g = discount_factors(cfg), production_profile(cfg)
+    return sum(df), sum(f * x for f, x in zip(df, g))
+
+
+def revenue_pv(field: Field, cfg: dict) -> float:
+    """PV of revenue with no downtime [USD] (same for every layout)."""
+    from .units import YEAR
+    q = sum(param(cfg, "production.well_rate") for _ in field.wells)
+    return q * YEAR * param(cfg, "production.oil_price") * annuity_factors(cfg)[1]
+
+
+def npv_breakdown(field: Field, cfg: dict, assignment: dict[str, str],
+                  sizes: dict[str, int] | None = None) -> dict[str, float]:
+    """NPV and its parts [USD] for a layout."""
+    from .maintenance import expected_failure_cost
+    if sizes is None:
+        count = {s: list(assignment.values()).count(s) for s in set(assignment.values())}
+        sizes = {s: smallest_size(cfg, n) for s, n in count.items()}
+    a_rep, a_prod = annuity_factors(cfg)
+    capex = capex_breakdown(field, cfg, assignment, sizes)["total"]
+    f = expected_failure_cost(field, cfg, assignment, sizes)
+    out = {
+        "revenue": revenue_pv(field, cfg),
+        "capex": capex,
+        "opex": param(cfg, "economics.opex_fraction_of_capex") * capex * a_rep,
+        "repair_cost": f.repair_cost * a_rep,
+        "lost_production": f.lost_production * a_prod,
+    }
+    out["npv"] = out["revenue"] - out["capex"] - out["opex"] - out["repair_cost"] - out["lost_production"]
     return out

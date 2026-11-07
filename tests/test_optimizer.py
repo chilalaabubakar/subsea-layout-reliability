@@ -44,3 +44,39 @@ def test_2_slot_manifolds_force_three(field, cfg):
     cfg["manifold"]["sizes"]["value"] = [2]
     sol = check(field, cfg)
     assert len(sol.open_sites) == 3
+
+
+# ---------------------------------------------------------------- case 2 (NPV)
+from layout_rel.economics import npv_breakdown          # noqa: E402
+from layout_rel.optimizer import optimize_npv            # noqa: E402
+
+
+def brute_force_max_npv(field, cfg):
+    biggest = max(param(cfg, "manifold.sizes"))
+    best = -math.inf
+    for combo in itertools.product(field.sites, repeat=len(field.wells)):
+        if any(combo.count(s) > biggest for s in field.sites):
+            continue
+        # smallest feasible size is best: CAPEX and failure rate both grow with slots
+        best = max(best, npv_breakdown(field, cfg, dict(zip(field.wells, combo)))["npv"])
+    return best
+
+
+def check_npv(field, cfg):
+    sol = optimize_npv(field, cfg)
+    assert math.isclose(sol.objective, brute_force_max_npv(field, cfg), rel_tol=1e-9)
+    assert math.isclose(sol.objective,
+                        npv_breakdown(field, cfg, sol.assignment, sol.sizes)["npv"], rel_tol=1e-9)
+    return sol
+
+
+def test_npv_milp_is_optimal(field, cfg):
+    check_npv(field, cfg)
+
+
+def test_unreliable_manifolds_split_the_field(field, cfg):
+    # with very frequent manifold failures and slow vessels, grouping must be punished
+    cfg["reliability"]["manifold"]["failure_rate_per_h"]["value"] *= 10
+    cfg["vessels"]["hlv_mobilisation"]["value"] = 90.0
+    sol = check_npv(field, cfg)
+    assert len(sol.open_sites) >= 2

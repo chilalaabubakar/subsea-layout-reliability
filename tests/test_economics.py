@@ -39,3 +39,12 @@ def test_breakdown_matches_coefficients(field, cfg):
 def test_breakdown_rejects_overfull_manifold(field, cfg):
     with pytest.raises(ValueError):
         capex_breakdown(field, cfg, {w: "M2" for w in field.wells}, sizes={"M2": 4})
+
+
+def test_annuity_factors_by_hand(cfg):
+    from layout_rel.economics import annuity_factors, production_profile
+    g = production_profile(cfg)
+    assert len(g) == 20 and g[:3] == [1.0, 1.0, 1.0] and math.isclose(g[3], 0.88)
+    a_rep, a_prod = annuity_factors(cfg)
+    assert math.isclose(a_rep, (1 - 1.1 ** -20) / 0.1)           # 20-year annuity at 10 %
+    assert a_prod < a_rep
