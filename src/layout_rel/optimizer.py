@@ -18,6 +18,11 @@ Constraints
     slot capacity, only open sites take wells:       sum_w assign[w,s] <= sum_k k*size[s,k]
     (tightening) a well can only use an open site:   assign[w,s] <= open[s]
 
+Risk-averse case 2 (step 7): the failure cost term becomes
+    (1 - rho) * E[failure cost] + rho * CVaR_alpha(failure cost)
+with CVaR from sampled scenarios (Rockafellar & Uryasev 2000):
+    CVaR = eta + 1 / ((1 - alpha) N) * sum_n u[n],   u[n] >= cost_n(layout) - eta,  u >= 0.
+
 Case 2 adds z[w,s,k] >= assign[w,s] + size[s,k] - 1 (z >= 0), the linear form of
 assign*size, needed because a manifold's failure rate depends on its slot count
 and its failure stops every well on it. z has a positive cost and is minimised,
@@ -31,7 +36,7 @@ import pyomo.environ as pyo
 
 from .config import param
 from .economics import annuity_factors, capex_coefficients, manifold_sizes, revenue_pv
-from .maintenance import failure_cost_coefficients
+from .maintenance import FailureCostCoefficients, failure_cost_coefficients
 from .layout import Field
 
 
@@ -80,8 +85,23 @@ def build_capex_model(field: Field, cfg: dict) -> pyo.ConcreteModel:
     return m
 
 
-def build_npv_model(field: Field, cfg: dict) -> pyo.ConcreteModel:
-    """Case 2: maximise NPV including expected failure cost (solved as min of costs)."""
+def _failure_cost(m: pyo.ConcreteModel, f: FailureCostCoefficients):
+    """Linear failure-cost expression of the layout for one set of coefficients."""
+    return (f.constant
+            + sum(f.site[s] * m.open[s] for s in m.S)
+            + sum(f.site_size[s, k] * m.size[s, k] for s in m.S for k in m.K)
+            + sum(f.connect[w, s] * m.assign[w, s] for w in m.W for s in m.S)
+            + sum(f.connect_size[w, s, k] * m.z[w, s, k] for w in m.W for s in m.S for k in m.K))
+
+
+def build_npv_model(field: Field, cfg: dict, risk_weight: float | None = None,
+                    scenarios: list[FailureCostCoefficients] | None = None) -> pyo.ConcreteModel:
+    """Case 2: maximise NPV incl. failure cost (solved as min of costs).
+
+    ``risk_weight`` (rho, default config risk.weight): 0 = expected failure cost only;
+    > 0 mixes in CVaR over sampled scenarios (default montecarlo.sample_scenarios).
+    """
+    rho = param(cfg, "risk.weight") if risk_weight is None else risk_weight
     m = _base_model(field, cfg, "npv_with_failures")
     a_rep, a_prod = annuity_factors(cfg)
     f = failure_cost_coefficients(field, cfg, repair_weight=a_rep, production_weight=a_prod)
@@ -89,16 +109,27 @@ def build_npv_model(field: Field, cfg: dict) -> pyo.ConcreteModel:
     m.z = pyo.Var(m.W, m.S, m.K, domain=pyo.NonNegativeReals)
     m.z_link = pyo.Constraint(m.W, m.S, m.K, rule=lambda m, w, s, k:
                               m.z[w, s, k] >= m.assign[w, s] + m.size[s, k] - 1)
+    m.failure_expr = pyo.Expression(expr=_failure_cost(m, f))
+    failure_term = m.failure_expr
 
-    m.failure_expr = pyo.Expression(expr=f.constant
-        + sum(f.site[s] * m.open[s] for s in m.S)
-        + sum(f.site_size[s, k] * m.size[s, k] for s in m.S for k in m.K)
-        + sum(f.connect[w, s] * m.assign[w, s] for w in m.W for s in m.S)
-        + sum(f.connect_size[w, s, k] * m.z[w, s, k] for w in m.W for s in m.S for k in m.K))
+    if rho > 0:
+        from .montecarlo import sample_scenarios
+        scen = scenarios if scenarios is not None else sample_scenarios(field, cfg)
+        alpha = param(cfg, "risk.alpha")
+        m.N = pyo.RangeSet(0, len(scen) - 1)
+        m.eta = pyo.Var(domain=pyo.Reals)
+        m.u = pyo.Var(m.N, domain=pyo.NonNegativeReals)
+        m.scen_cost = pyo.Expression(m.N, rule=lambda m, n: _failure_cost(m, scen[n]))
+        m.tail = pyo.Constraint(m.N, rule=lambda m, n: m.u[n] >= m.scen_cost[n] - m.eta)
+        m.cvar_expr = pyo.Expression(expr=m.eta + sum(m.u[n] for n in m.N)
+                                     / ((1 - alpha) * len(scen)))
+        failure_term = (1 - rho) * m.failure_expr + rho * m.cvar_expr
+
     opex_factor = param(cfg, "economics.opex_fraction_of_capex") * a_rep
-    m.cost = pyo.Objective(expr=m.capex_expr * (1 + opex_factor) + m.failure_expr,
+    m.cost = pyo.Objective(expr=m.capex_expr * (1 + opex_factor) + failure_term,
                            sense=pyo.minimize)
     m.revenue_pv = revenue_pv(field, cfg)
+    m.rho = rho
     return m
 
 
@@ -122,10 +153,19 @@ def optimize_capex(field: Field, cfg: dict) -> LayoutSolution:
     return solve(build_capex_model(field, cfg), cfg)
 
 
-def optimize_npv(field: Field, cfg: dict) -> LayoutSolution:
-    """Case 2: NPV-optimal layout incl. failures. ``objective`` = NPV [USD]."""
-    m = build_npv_model(field, cfg)
+def optimize_npv(field: Field, cfg: dict, risk_weight: float | None = None,
+                 scenarios: list[FailureCostCoefficients] | None = None) -> LayoutSolution:
+    """Case 2: NPV-optimal layout incl. failures.
+
+    ``objective`` = revenue PV minus the minimised cost, i.e. the NPV when rho = 0 and a
+    risk-adjusted NPV when rho > 0. ``info`` holds the expected-value NPV parts and,
+    with rho > 0, the in-sample CVaR of the failure cost.
+    """
+    m = build_npv_model(field, cfg, risk_weight, scenarios)
     sol = solve(m, cfg)
     sol.info["cost_pv"] = sol.objective
+    sol.info["expected_failure_pv"] = pyo.value(m.failure_expr)
+    if m.rho > 0:
+        sol.info["cvar_failure_pv"] = pyo.value(m.cvar_expr)
     sol.objective = m.revenue_pv - sol.objective
     return sol

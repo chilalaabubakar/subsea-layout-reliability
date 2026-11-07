@@ -244,6 +244,35 @@ economics:
     unit: fraction of CAPEX per year (planned OPEX excl. failures)
     source: "PLACEHOLDER - no source yet; failure-related OPEX is modelled separately (maintenance)."
 
+# Monte Carlo check of the expected-value model, and risk (CVaR) settings. Step 7.
+montecarlo:
+  n_sims:
+    value: 20000
+    unit: "- (simulated field lives per layout)"
+    source: "Choice: gives a standard error of the mean well below 1 % of the mean."
+  seed:
+    value: 12345
+    unit: "-"
+    source: "Fixed seed for reproducibility (CLAUDE.md conventions)."
+
+risk:
+  alpha:
+    value: 0.95
+    unit: "- (CVaR confidence level: mean of the worst 5 % of outcomes)"
+    source: "Common choice in risk-averse optimisation (Rockafellar & Uryasev 2000, J. Risk 2(3):21-41)."
+  weight:
+    value: 0.0
+    unit: "- (0 = expected value only, 1 = CVaR only)"
+    source: "Decision-maker preference; 0 in the base case, varied in step 7 and 8."
+  n_scenarios:
+    value: 1000
+    unit: "- (sampled failure scenarios inside the MILP)"
+    source: "Choice: trade-off between MILP size and accuracy of the CVaR estimate; checked out-of-sample."
+  seed:
+    value: 2024
+    unit: "-"
+    source: "Fixed seed for the in-MILP scenarios (different from montecarlo.seed, so the out-of-sample check is independent)."
+
 routing:
   length_factor:
     value: 1.0

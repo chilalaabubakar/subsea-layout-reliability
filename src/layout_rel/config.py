@@ -78,7 +78,8 @@ def param(cfg: dict[str, Any], key: str) -> Any:
     value = param_raw(cfg, key)
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return value
-    return value * si_factor(node.get("unit", "-"))
+    factor = si_factor(node.get("unit", "-"))
+    return value if factor == 1.0 else value * factor     # keeps ints (seeds, counts) as ints
 
 
 def iter_params(cfg: dict[str, Any], prefix: str = ""):

@@ -17,8 +17,9 @@ expected cost of failures. See `CLAUDE.md` for the full project brief and work p
 | 4 | `optimizer.py`: CAPEX-only MILP (case 1) | done |
 | 5 | `reliability.py` + `maintenance.py`: expected failure cost per component | done |
 | 6 | Failure cost in the MILP, NPV objective (cases 2-3) | done |
-| 7 | Monte Carlo + risk measure (CVaR) | next |
-| 8-10 | Sensitivity, realistic case, figures | to do |
+| 7 | Monte Carlo check + risk-averse (CVaR) layouts | done |
+| 8 | Sensitivity analysis | next |
+| 9-10 | Realistic North Sea case, figures | to do |
 
 > Cost data: lines from Kaiser (2016); trees, manifolds and vessel rates from Bai & Bai (2010) Ch. 6.
 > Details, page numbers and ranges are in `docs/sources.md`. Costs are not yet escalated to one year.
@@ -38,6 +39,7 @@ pip install -e .                 # makes `import layout_rel` work everywhere
 python scripts/run_case1.py         # case 1: CAPEX-only optimal layout
 python scripts/run_failure_cost.py  # step 5: expected yearly failure cost of candidate layouts
 python scripts/run_case2.py         # cases 2-3: NPV-optimal layout incl. failures vs case 1
+python scripts/run_step7.py         # step 7: Monte Carlo check of the EV model, CVaR layouts (~1 min)
 pytest                           # run the tests
 ```
 
@@ -83,6 +85,15 @@ as lost (not deferred). The manifold failure rate grows with slot count k:
 rate(k) = rate_ref x ((1 - f) + f x k / 4), with f = 0.493 (share of slot-related valves and
 couplers in Liu et al. 2024). Without this, expected lost production would not depend on how
 wells are grouped. The product assign x size is linearised with z >= assign + size - 1.
+
+## Monte Carlo and risk (step 7)
+
+`montecarlo.simulate_layout` draws Poisson failure times over field life for a fixed layout,
+merges overlapping outages of the same well and cuts them at end of life, then applies the same
+discounting as the EV model. `montecarlo.sample_scenarios` writes sampled scenarios in the
+linear MILP form; `optimize_npv(..., risk_weight=rho)` then minimises
+(1 - rho) E[failure cost] + rho CVaR_alpha[failure cost] (Rockafellar-Uryasev LP form).
+Seeds are fixed in the config.
 
 ## Conventions
 
