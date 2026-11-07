@@ -18,8 +18,9 @@ expected cost of failures. See `CLAUDE.md` for the full project brief and work p
 | 5 | `reliability.py` + `maintenance.py`: expected failure cost per component | done |
 | 6 | Failure cost in the MILP, NPV objective (cases 2-3) | done |
 | 7 | Monte Carlo check + risk-averse (CVaR) layouts | done |
-| 8 | Sensitivity analysis | next |
-| 9-10 | Realistic North Sea case, figures | to do |
+| 8 | Sensitivity analysis (tornado, switching map) | done |
+| 9 | Realistic North Sea case | next |
+| 10 | Figures and tables for the report | to do |
 
 > Cost data: lines from Kaiser (2016); trees, manifolds and vessel rates from Bai & Bai (2010) Ch. 6.
 > Details, page numbers and ranges are in `docs/sources.md`. Costs are not yet escalated to one year.
@@ -40,6 +41,7 @@ python scripts/run_case1.py         # case 1: CAPEX-only optimal layout
 python scripts/run_failure_cost.py  # step 5: expected yearly failure cost of candidate layouts
 python scripts/run_case2.py         # cases 2-3: NPV-optimal layout incl. failures vs case 1
 python scripts/run_step7.py         # step 7: Monte Carlo check of the EV model, CVaR layouts (~1 min)
+python scripts/run_step8.py         # step 8: sensitivity (add --risk 0.5 for the risk-averse study, ~6 min)
 pytest                           # run the tests
 ```
 
@@ -94,6 +96,14 @@ discounting as the EV model. `montecarlo.sample_scenarios` writes sampled scenar
 linear MILP form; `optimize_npv(..., risk_weight=rho)` then minimises
 (1 - rho) E[failure cost] + rho CVaR_alpha[failure cost] (Rockafellar-Uryasev LP form).
 Seeds are fixed in the config.
+
+## Sensitivity (step 8)
+
+Ranges are in the config section `sensitivity`, each with its source (Bai & Bai min/max,
+Liu et al. interval, Thies et al. 90 % interval, Kaiser range, own assumptions). Each item is
+set to low and high one at a time; case 1 and case 2 are re-solved and the NPV change, the
+failure-cost change and any layout change are reported. `run_step8.py` also maps the
+optimal number of manifolds over vessel mobilisation time x manifold failure rate.
 
 ## Conventions
 

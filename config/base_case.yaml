@@ -273,6 +273,87 @@ risk:
     unit: "-"
     source: "Fixed seed for the in-MILP scenarios (different from montecarlo.seed, so the out-of-sample check is independent)."
 
+# Sensitivity ranges (step 8). Each item changes the listed `targets` (dotted keys of
+# raw YAML values) to `low` / `high`: mode "scale" multiplies the base value, mode "set"
+# replaces it (one number for all targets, or one per target).
+sensitivity:
+  oil_price:
+    value: {targets: [production.oil_price], mode: set, low: 50.0, high: 100.0}
+    unit: USD/bbl
+    source: "Own assumption range (CLAUDE.md)."
+  well_rate:
+    value: {targets: [production.well_rate], mode: scale, low: 0.5, high: 1.5}
+    unit: "- (x base 6000 bbl/day)"
+    source: "Own assumption range (+/- 50 %)."
+  vessel_day_rates:
+    value: {targets: [vessels.msv_day_rate, vessels.hlv_day_rate, vessels.modu_deep_day_rate], mode: set, low: [40.0e+3, 250.0e+3, 750.0e+3], high: [120.0e+3, 550.0e+3, 1050.0e+3]}
+    unit: USD/day
+    source: "Bai & Bai (2010) Table 6-3 minimum and maximum day rates (MSV, HLV, MODU > 1500 m)."
+  mobilisation_time:
+    value: {targets: [vessels.msv_mobilisation, vessels.hlv_mobilisation], mode: scale, low: 0.5, high: 2.0}
+    unit: "- (x base)"
+    source: "Assumed range; base values not yet sourced (CLAUDE.md novelty angle 2)."
+  repair_time:
+    value: {targets: [maintenance.xmas_tree.repair_days, maintenance.manifold.repair_days, maintenance.flowline.repair_days, maintenance.umbilical.repair_days], mode: scale, low: 0.5, high: 2.0}
+    unit: "- (x base)"
+    source: "Assumed range (repair durations are partly assumptions, see config)."
+  weather_allowance:
+    value: {targets: [maintenance.weather_allowance], mode: set, low: 0.20, high: 0.30}
+    unit: fraction
+    source: "Bai & Bai (2010) Fig. 6-18: 20-30 %."
+  all_failure_rates:
+    value: {targets: [reliability.xmas_tree.failure_rate_per_h, reliability.manifold.failure_rate_per_h, reliability.infield_flowline.failure_rate_per_km, reliability.tieback_flowline.failure_rate_per_km, reliability.tieback_umbilical.failure_rate_per_unit], mode: scale, low: 0.5, high: 2.0}
+    unit: "- (x base)"
+    source: "CLAUDE.md: failure rates x0.5 and x2."
+  manifold_failure_rate:
+    value: {targets: [reliability.manifold.failure_rate_per_h], mode: set, low: 11.85e-6, high: 67.34e-6}
+    unit: 1/h
+    source: "Liu et al. (2024) Sci. Rep. 14:22873, Eq. 32 fuzzy interval [0.1185e-4, 0.6734e-4] per hour."
+  tree_failure_rate:
+    value: {targets: [reliability.xmas_tree.failure_rate_per_h], mode: set, low: 4.25e-6, high: 16.3e-6}
+    unit: 1/h
+    source: "Low: base x0.5 (CLAUDE.md). High (our estimate): SCM with 20 solenoid control valves (Mahmoudi et al. 2021 Table 7, 14.3e-6/h) + Bai & Bai Table 11-14 upper column (2.05e-6/h)."
+  umbilical_failure_rate:
+    value: {targets: [reliability.tieback_umbilical.failure_rate_per_unit], mode: set, low: 0.2e-6, high: 14.0e-6}
+    unit: 1/h
+    source: "Thies et al. (2012) Fig. 6: 90 % interval 0.2-14 per 10^6 h (OREDA 2002)."
+  slot_fraction:
+    value: {targets: [reliability.manifold.slot_fraction], mode: set, low: 0.0, high: 1.0}
+    unit: fraction
+    source: "Model bounds: 0 = rate independent of slots (Silva & Guedes Soares 2025), 1 = rate proportional to slots."
+  line_capex:
+    value: {targets: [capex.infield_flowline, capex.infield_umbilical, capex.tieback_flowline, capex.tieback_umbilical], mode: set, low: 621.0, high: 3728.0}
+    unit: USD/m
+    source: "Kaiser (2016) Sec. 5: 'the majority of costs ranged from 1 to 6 million USD/mi' -> 621-3728 USD/m."
+  manifold_capex:
+    value: {targets: [capex.manifold.procurement_base], mode: set, low: 2.0e+6, high: 4.0e+6}
+    unit: USD
+    source: "Bai & Bai (2010) p. 176: manifold base cost C0 min 2.0, max 4.0 MUSD."
+  tree_capex:
+    value: {targets: [capex.xmas_tree.procurement], mode: set, low: 2.6e+6, high: 3.3e+6}
+    unit: USD
+    source: "Bai & Bai (2010) p. 174: C0 min/max 2.50/3.00 MUSD + Cmisc min/max 0.10/0.30 MUSD."
+  opex_fraction:
+    value: {targets: [economics.opex_fraction_of_capex], mode: set, low: 0.0, high: 0.06}
+    unit: fraction
+    source: "Assumed range around the unsourced base value 0.03."
+  discount_rate:
+    value: {targets: [economics.discount_rate], mode: set, low: 0.08, high: 0.12}
+    unit: fraction
+    source: "Own assumption range (CLAUDE.md)."
+  field_life:
+    value: {targets: [economics.field_life], mode: set, low: 15.0, high: 25.0}
+    unit: yr
+    source: "Own assumption range (CLAUDE.md)."
+  decline_rate:
+    value: {targets: [economics.decline_rate], mode: set, low: 0.06, high: 0.18}
+    unit: fraction
+    source: "Own assumption range."
+  plateau_years:
+    value: {targets: [economics.plateau_years], mode: set, low: 2.0, high: 5.0}
+    unit: yr
+    source: "Own assumption range."
+
 routing:
   length_factor:
     value: 1.0
