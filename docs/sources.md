@@ -114,8 +114,44 @@ costs does not change the optimal layout, but it does change the CAPEX vs. failu
   "is the sum of all of the individual subsea wells". This supports the manifold-shuts-all-its-wells idea.
 - p. 187: failures of subsea equipment are covered in **Chapter 11** (possible failure-rate source).
 
+## Bai & Bai (2010), Chapter 11 "Subsea Equipment RBI" (pp. 293-328): tree failure rates only
+
+Same book. Chapter 11 is about risk-based inspection (RBI). Its failure data come from **OREDA 2002**
+(Det Norske Veritas, *OREDA Offshore Reliability Data Handbook*, 4th ed.), table "Failure Descriptor
+versus Failure Mode, Wellhead & Xmas Tree", OREDA p. 835 (Bai ref. [2]).
+
+**Table 11-14, failure rate of subsea tree components (per hour):**
+
+| Component | Low | Mean | Upper |
+|---|---|---|---|
+| Connector | 0.24e-9 | 0.24e-8 | 0.2e-7 |
+| Flow spool | 0.65e-9 | 0.65e-8 | 0.7e-7 |
+| Hydraulic coupling | 0.4e-10 | 0.4e-9 | 0.37e-8 |
+| Piping | 0.1e-8 | 0.1e-7 | 0.96e-6 |
+| Tubing hanger body | 0.11e-7 | 0.2e-7 | 0.1e-6 |
+| Tree guide frame | 0.86e-8 | 0.24e-7 | 0.15e-6 |
+| Valve, choke | 0.7e-7 | 0.73e-7 | 0.25e-6 |
+| Valve, process isolation | 0.75e-7 | 0.11e-6 | 0.5e-6 |
+| **Sum (series system)** | **1.67e-7** | **2.46e-7** | **2.05e-6** |
+| per year (x 8760 h) | 1.46e-3 | 2.16e-3 | 1.80e-2 |
+
+- p. 317: Bai's example takes the upper values: "2.05 x 10^-6 per hour or 1.8 x 10^-2 per year".
+  Our sum of the upper column gives the same number, which confirms the table was read correctly.
+- p. 317: the example assumes a **delay time of 2 days** per tree failure (their assumption).
+- Limitation: the table only lists components with recorded failures in Bai's modified Table 11-13.
+  It does **not** include the subsea control module (SCM) or the control system, so it is a
+  lower estimate of how often a tree stops a well. A rate for the whole tree, including controls,
+  is still needed.
+- p. 301: failure rate lambda = n/t (failures / time in service), with a 90 % chi-square confidence
+  interval. A manifold "can be equal to the pipe" for failure-rate purposes.
+- Sec. 11.4 and 11.6 (pipelines, manifolds) give only **qualitative** probability-of-failure categories
+  (corrosion, trawling, free span, etc.) and no numeric rates. They are not usable as lambda.
+- p. 304: OREDA also gives active repair time per component (hours), which could be used for repair durations.
+
 ## Still needed
 
-- Failure rates (lambda) for trees, manifolds, flowlines and umbilicals: Bai & Bai Ch. 11, or published papers/theses quoting OREDA.
+- Failure rates (lambda): **manifold, flowline, umbilical, subsea control module** (tree done, Bai Table 11-14,
+  but without controls). Sources: published papers/theses quoting OREDA (2009 or later editions); PARLOC
+  (UK pipeline and riser loss of containment) for flowlines, see Bai p. 300.
 - Repair durations and vessel waiting/mobilization times.
 - Common cost year: escalate Kaiser (2014) and Bai (2007/2009) to one year.
