@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "layout_rel"
+version = "0.1.0"
+description = "Reliability- and maintenance-aware subsea field layout optimization"
+requires-python = ">=3.11"
+dependencies = [
+    "pyomo>=6.7", "highspy>=1.7", "networkx>=3.2", "numpy>=1.26",
+    "pandas>=2.1", "matplotlib>=3.8", "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

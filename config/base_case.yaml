@@ -1,0 +1,61 @@
+# Base-case parameters.
+# Every parameter has: value, unit, source.
+# Units are SI (m, s, USD) so the code never converts.
+#
+# STATUS: CAPEX values below are ORDER-OF-MAGNITUDE PLACEHOLDERS used to build
+# and test the model. They are marked "PLACEHOLDER" in `source` and MUST be
+# replaced with literature values (with full citations) before any result is
+# reported. Run `python -m layout_rel.config` to list remaining placeholders.
+
+field_file:
+  value: field_toy.yaml
+  unit: "-"
+  source: "Made-up 6-well field for model development (work plan step 2)"
+
+manifold:
+  slots:
+    value: 4
+    unit: wells per manifold
+    source: "PLACEHOLDER - typical 4-slot production manifold; confirm from literature"
+
+capex:
+  xmas_tree:
+    value: 8.0e6
+    unit: USD per tree (installed)
+    source: "PLACEHOLDER - order of magnitude; replace with literature value"
+  manifold:
+    value: 25.0e6
+    unit: USD per manifold (installed, incl. foundation)
+    source: "PLACEHOLDER - order of magnitude; replace with literature value"
+  infield_flowline:
+    value: 1500.0
+    unit: USD/m (well -> manifold flowline/jumper, installed)
+    source: "PLACEHOLDER - ~1.5 MUSD/km; replace with literature value"
+  infield_umbilical:
+    value: 600.0
+    unit: USD/m (manifold -> well umbilical jumper, installed)
+    source: "PLACEHOLDER - ~0.6 MUSD/km; replace with literature value"
+  tieback_flowline:
+    value: 3000.0
+    unit: USD/m (manifold -> host production flowline, installed)
+    source: "PLACEHOLDER - ~3 MUSD/km; replace with literature value"
+  tieback_umbilical:
+    value: 1200.0
+    unit: USD/m (host -> manifold main umbilical, installed)
+    source: "PLACEHOLDER - ~1.2 MUSD/km; replace with literature value"
+
+routing:
+  length_factor:
+    value: 1.0
+    unit: "-"
+    source: "Assumption: straight-line routing. >1 adds allowance for seabed obstacles/slack"
+
+solver:
+  name:
+    value: appsi_highs
+    unit: "-"
+    source: "Pyomo interface to HiGHS (open-source MILP solver)"
+  mip_gap:
+    value: 1.0e-6
+    unit: "-"
+    source: "Assumption: near-exact optimum (small problem)"
