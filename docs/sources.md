@@ -58,9 +58,26 @@ https://jaschke.folk.ntnu.no/Masters/MasterTheses/2018/Krogstad/masterDagKrogsta
 - Multiphase pump: about 3 MUSD fixed cost excluding installation (ACES database; DNV 2001
   report gives 1-3 MUSD), Sec. 3.2.5. Useful if subsea pumps are added later.
 
+## Bai & Bai (2010), Chapters 1-2 only: no cost numbers
+
+Bai, Y., Bai, Q. (2010). *Subsea Engineering Handbook*. Gulf Professional Publishing
+(Elsevier). ISBN 978-1-85617-689-7.
+
+The uploaded excerpt covers front matter and Chapters 1-2 (book pp. 1-50). It has no unit costs.
+Useful qualitative points:
+
+- p. 22, Sec. 1.4.4 (satellite vs clustered wells): clustered systems need fewer flowlines and
+  umbilicals, and let one service-vessel deployment service several wells, "thereby saving
+  mobilization costs". But "drilling or workover operations on one well of the cluster may
+  interrupt production from others". This supports the project's premise that well grouping
+  changes both CAPEX and failure/intervention cost.
+- pp. 11-12, Sec. 1.2.5: subsea cost is "relatively flat with increasing water depth"; cost
+  estimates are covered in **Chapter 6**.
+- p. 11: Chapter 5 reviews installation vessels (possible source of vessel types and day rates).
+
 ## Still needed (placeholders in config)
 
 - `capex.xmas_tree`, `capex.manifold`, `manifold.slots`.
 - Best lead: Bai, Y. & Bai, Q. *Subsea Engineering Handbook* (Elsevier, 2010; 2nd ed. 2019),
-  chapter "Subsea Cost Estimation". It is the original source of the pipe costs above and has
+  **Chapter 6** "Subsea Cost Estimation" (not in the excerpt above). It is the original source of the pipe costs above and has
   cost tables for subsea equipment. Available on ScienceDirect through most university libraries.
