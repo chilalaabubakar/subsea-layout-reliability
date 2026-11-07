@@ -2,7 +2,7 @@
 # Coordinates in metres on a local grid (x = east, y = north).
 # Replace with a realistic case in work plan step 9.
 name: Toy field (6 wells, 3 candidate manifold sites)
-water_depth_m: 1500   # not used yet; deepwater Tanzania-style assumption
+water_depth_m: 1500   # not used yet; made-up value (realistic North Sea case in step 9)
 host:
   name: HOST
   type: FPSO

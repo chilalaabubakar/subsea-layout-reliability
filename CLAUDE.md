@@ -22,11 +22,12 @@ Alternative titles:
 1. Fast expected-value reliability model inside a MILP, validated by Monte Carlo
    (shows it is both fast and accurate enough).
 2. Vessel mobilization and waiting time as the main driver of downtime cost.
-3. Tanzania deepwater gas case vs North Sea case: longer vessel mobilization
-   may make reliability matter more.
+3. (Dropped, decision 2026-11: Tanzania vs North Sea comparison removed because too
+   little is known about Tanzanian conditions. The case study is North Sea only.)
 
 ## Scope
-- One field case: 6-12 wells, one host (platform or FPSO).
+- One field case: 6-12 wells, one host (platform or FPSO), North Sea conditions
+  (vessel availability, mobilisation, weather, costs).
 - Components: X-mas trees, manifolds, flowlines, umbilicals (subsea pumps optional).
 - Reliability: constant failure rate (exponential model), MTTF = 1/lambda.
 - Field life economics with discounting (NPV).
@@ -117,8 +118,7 @@ subsea-layout-reliability/
 6. Add failure cost to optimizer, NPV objective (case 2), compare with case 1
 7. montecarlo.py: random failure simulation, compare to expected-value model
 8. Sensitivity analysis
-9. Replace made-up field with a realistic case (published field or
-   Tanzania deepwater-style case)
+9. Replace made-up field with a realistic North Sea case (published field)
 10. Figures and tables for the report/paper
 
 ## Conventions

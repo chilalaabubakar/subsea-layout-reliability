@@ -37,7 +37,7 @@ vessels:
   msv_mobilisation:
     value: 14.0
     unit: days (call-out to arrival on site, incl. vessel availability)
-    source: "PLACEHOLDER - no source yet; Bai & Bai Fig. 6-17 defines this as T_RA but gives no value. Key parameter for novelty angles 2-3 (North Sea vs Tanzania)."
+    source: "PLACEHOLDER - no source yet; Bai & Bai Fig. 6-17 defines this as T_RA but gives no value. Key parameter for novelty angle 2; needs a North Sea value."
   hlv_mobilisation:
     value: 30.0
     unit: days (call-out to arrival on site, incl. vessel availability)
