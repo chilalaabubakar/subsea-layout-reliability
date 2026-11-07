@@ -284,22 +284,40 @@ was available (front matter and Ch. 1-2).
   Fig. 3-9 to 3-11, pp. 57-59) and analyses a manifold lift at Hs = 2 m, Tp = 8 s (Table 6-1). Not in the
   preview; the Hs limit in our config remains a placeholder.
 
-## DNV-ST-N001 (Dec. 2023), Marine operations and marine warranty: definitions (Sec. 1)
+## DNV-ST-N001 (Dec. 2023), Marine operations and marine warranty: weather-restricted operations
 
 DNV (2023). DNV-ST-N001 *Marine operations and marine warranty*, edition December 2023. DNV AS.
-So far only the change log and Sec. 1 have been read.
+(Licensed copy; do not commit or redistribute the PDF. Only short values are recorded here.)
 
-- Table 1-4: "weather window - period that the forecasted environmental conditions are less than or equal
-  to OPWF (the 'forecast operation criteria')"; "forecasted operational criteria ... For a 'weather
-  restricted operation/voyage' these equal the 'operational limiting criteria' multiplied by an 'alpha
-  factor'"; "alpha factor - factor applied to the 'operational limiting criteria' to account for weather
-  forecasting inaccuracies, see [2.6.9]"; "operation reference period - 'planned operation period', plus the
-  contingency period, see [2.6.2] to [2.6.4]"; "planned operation period - ... 'safe to safe' duration ...
-  excludes the contingency period".
-- Sec. 1.6.3 symbols: OPLIM, OPWF, TPOP, TC, TR = TPOP + TC.
-- Use for our weather model: a repair needs a window of TR = repair time + contingency with
-  Hs <= alpha x OPLIM. Still needed: contingency rule [2.6.2]-[2.6.4], weather-restricted limits [2.6.7],
-  alpha factors [2.6.9]-[2.6.11] (Table 2-5). OPLIM itself is vessel-specific (not in the standard).
+- Table 1-4 definitions: weather window = period with forecast conditions <= OP_WF; OP_WF = alpha x OP_LIM;
+  operation reference period T_R = T_POP + T_C.
+- [2.6.4.2]: if not assessed in detail, T_R >= 2 x T_POP (guidance: T_C = 50 % of T_POP acceptable only
+  for operations with an extensive experience basis). [2.6.4.3]: T_C < 6 h normally not acceptable.
+- [2.6.7.2]: weather restricted requires T_R < 96 h and T_POP < 72 h. [2.6.5.2], [2.6.7.8]: longer
+  operations can be planned with stops in a safe condition.
+- [2.6.8.2]: OP_LIM not greater than the minimum of design conditions, safe working limits and "weather
+  restrictions for equipment (e.g. ROV and cranes)" -> OP_LIM is vessel/equipment specific.
+- [2.6.10.4]: North Sea and Norwegian Sea alpha tables per Table 2-1 (forecast level, monitoring, LRFD/ASD).
+- Table 2-16: forecast level B (moderate) for "offshore lifting", "subsea installation".
+- **Table 2-4** (LRFD, level A2 or B, no environmental monitoring), alpha by T_POP row and OP_LIM Hs:
+
+  | T_POP | Hs = 1 | Hs = 2 | Hs = 4 | Hs >= 6 |
+  |---|---|---|---|---|
+  | <= 12 h | 0.68 | 0.80 | 0.83 | 0.84 |
+  | <= 24 h | 0.66 | 0.77 | 0.80 | 0.82 |
+  | <= 36 h | 0.65 | 0.75 | 0.77 | 0.80 |
+  | <= 48 h | 0.63 | 0.71 | 0.75 | 0.78 |
+  | <= 72 h | 0.58 | 0.66 | 0.71 | 0.76 |
+
+  Linear interpolation between Hs columns. Used in config `weather.alpha_table`.
+
+## NORA3 wave hindcast at Solveig (MET Norway): North Sea weather statistics
+
+Breivik et al. (2022), J. Geophys. Res. Oceans 127, e2021JC018196; data CC BY 4.0, MET Norway. Hourly Hs at
+58.6795 N, 2.2036 E (model depth 99 m), downloaded with scripts/download_nora3_hs.py.
+
+- Cross-check: share of hours with Hs < 2.5 m = 0.65 (first 7 years), at the low end of the 65-80 % quoted for
+  the North Sea by industry sources (nodynamics.com, not peer reviewed).
 
 ## Failure-rate summary (candidates for step 5)
 

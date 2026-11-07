@@ -380,6 +380,25 @@ weather:
     value: 2.0
     unit: m (significant wave height limit for heavy lifts through the splash zone)
     source: "PLACEHOLDER - assumed; needs a source (vessel or DNV marine-operations criteria)."
+  alpha_table:
+    value:
+      tpop_rows: [12, 24, 36, 48, 72]
+      hs_cols: [1, 2, 4, 6]
+      alpha: [[0.68, 0.80, 0.83, 0.84], [0.66, 0.77, 0.80, 0.82], [0.65, 0.75, 0.77, 0.80], [0.63, 0.71, 0.75, 0.78], [0.58, 0.66, 0.71, 0.76]]
+    unit: "- (rows: T_POP <= h; columns: OP_LIM Hs in m, linear interpolation)"
+    source: "DNV-ST-N001 (Dec. 2023) Table 2-4, LRFD alpha factor for waves, forecast level A2 or B, no environmental monitoring. Level B per Table 2-16 ('subsea installation', 'offshore lifting'); table choice per Table 2-1 and [2.6.10.4] (North Sea)."
+  contingency_factor:
+    value: 1.0
+    unit: "- (T_C = factor x T_POP, i.e. T_R = 2 T_POP)"
+    source: "DNV-ST-N001 (2023) [2.6.4.2]: if not assessed in detail, T_R >= 2 x T_POP."
+  min_contingency:
+    value: 6.0
+    unit: h
+    source: "DNV-ST-N001 (2023) [2.6.4.3]: T_C < 6 hours normally not acceptable."
+  max_phase:
+    value: 47.0
+    unit: h (longest weather-restricted phase; longer repairs are split with safe stops)
+    source: "DNV-ST-N001 (2023) [2.6.7.2]: weather restricted needs T_POP < 72 h and T_R < 96 h; with T_R = 2 T_POP this gives T_POP < 48 h. Splitting with stops per [2.6.5.2], [2.6.7.8]."
 
 routing:
   length_factor:
