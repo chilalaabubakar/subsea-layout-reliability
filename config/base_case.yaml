@@ -2,9 +2,11 @@
 # Every parameter has: value, unit, source.
 # Units are SI (m, s, USD) so the code never converts.
 #
-# STATUS: line costs are from Kaiser (2016). Tree, manifold and slot count are
-# still ORDER-OF-MAGNITUDE PLACEHOLDERS, marked "PLACEHOLDER" in `source`; they
-# MUST be replaced with cited literature values before any result is reported. Run `python -m layout_rel.config` to list remaining placeholders.
+# Cost sources: see docs/sources.md.
+#   Lines: Kaiser (2016), installed, 2014 USD.
+#   Trees, manifolds, vessels: Bai & Bai (2010) Ch. 6, 2009 USD. Not yet escalated
+#   to a common year; overheads/contingency (Bai Fig. 6-18) not yet applied.
+# Run `python -m layout_rel.config` to list any parameter still marked PLACEHOLDER.
 
 field_file:
   value: field_toy.yaml
@@ -12,20 +14,68 @@ field_file:
   source: "Made-up 6-well field for model development (work plan step 2)"
 
 manifold:
-  slots:
-    value: 4
-    unit: wells per manifold
-    source: "PLACEHOLDER - typical 4-slot production manifold; confirm from literature"
+  sizes:
+    value: [2, 4, 6, 8]
+    unit: slots (wells per manifold); each open site gets one of these sizes
+    source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, p. 176: 'Manifolds are usually designed with 2, 4, 6, 8, and sometimes 10 slots.' 10-slot left out (rare)."
+  slot_cost_factor:
+    value: {2: 0.70, 4: 1.00, 6: 1.30, 8: 1.50, 10: 2.00}
+    unit: "- (multiplies manifold base cost; 4 slots = 1)"
+    source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, p. 176, Cost Factor: Number of Slots (cluster manifold), average values."
+
+vessels:
+  modu_deep_day_rate:
+    value: 950.0e+3
+    unit: USD/day
+    source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-3, MODU > 1500 m (5000 ft), average day rate (min 750k, max 1050k)."
+  hlv_day_rate:
+    value: 400.0e+3
+    unit: USD/day
+    source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-3, HLV (heavy-lift vessel), average day rate (min 250k, max 550k)."
 
 capex:
   xmas_tree:
-    value: 8.0e6
-    unit: USD per tree (installed)
-    source: "PLACEHOLDER - order of magnitude; replace with literature value"
+    procurement:
+      value: 2.95e+6
+      unit: USD per tree (2009 USD)
+      source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, p. 174, Eq. 6-6: C = fs*ft*fp*C0 + Cmisc with C0 = 2.75 MUSD average (5-in, 10 ksi, VXT, carbon steel; min 2.50, max 3.00), fs = ft = fp = 1, Cmisc = 0.20 MUSD average (insulation). Includes pipeline connector, tree cap, ROV choke; excludes tubing hanger, SCM, junction plate, sensors."
+    sit:
+      value: 0.20e+6
+      unit: USD per tree
+      source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-2, SIT cost, tree and tubing hanger, average (min 0.10, max 0.30 MUSD)."
+    install_days:
+      value: 3.0
+      unit: days per tree
+      source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, p. 182: 'Tree installation ... normally takes 2 to 4 days'; Table 6-6 uses 3 days."
+    install_vessel:
+      value: modu_deep
+      unit: key in `vessels` (<name>_day_rate)
+      source: "Assumption: trees run from a drilling rig (MODU), as in Bai & Bai Table 6-6 (1000k USD/day)."
   manifold:
-    value: 25.0e6
-    unit: USD per manifold (installed, incl. foundation)
-    source: "PLACEHOLDER - order of magnitude; replace with literature value"
+    procurement_base:
+      value: 3.0e+6
+      unit: USD per 4-slot manifold (2009 USD), scaled by manifold.slot_cost_factor
+      source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, p. 176, Eq. 6-7: C = fs*fn*ft*C0 + Cmisc with C0 = 3.0 MUSD average (4-slot cluster, 10-in header, 10 ksi, carbon steel; min 2.0, max 4.0), fs = ft = 1."
+    procurement_misc:
+      value: 0.25e+6
+      unit: USD per manifold (2009 USD)
+      source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, p. 177, Cmisc (e.g. insulation), average (min 0.15, max 0.35 MUSD)."
+    sit:
+      value: 0.20e+6
+      unit: USD per manifold
+      source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-2, SIT cost, manifold, average (min 0.15, max 0.25 MUSD)."
+    foundation:
+      value: 1.0e+6
+      unit: USD per manifold (2007 USD)
+      source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-6 (2007 data), suction pile for manifold: 1,000,000 USD."
+    install_days:
+      value: 2.0
+      unit: days per manifold
+      source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-4, manifold installation 1-3 days (1500 m water depth); midpoint."
+    install_vessel:
+      value: hlv
+      unit: key in `vessels` (<name>_day_rate)
+      source: "Assumption: manifold lifted by a heavy-lift vessel (Bai & Bai Table 6-3 vessel types)."
   infield_flowline:
     value: 2243.0
     unit: USD/m (well -> manifold flowline/jumper, installed, 2014 USD)

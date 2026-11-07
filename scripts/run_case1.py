@@ -20,7 +20,7 @@ def main(cfg_path=DEFAULT_CONFIG):
     cfg = load_config(cfg_path)
     field = load_field(field_path(cfg), param(cfg, "routing.length_factor"))
     sol = optimize_capex(field, cfg)
-    capex = capex_breakdown(field, cfg, sol.assignment)
+    capex = capex_breakdown(field, cfg, sol.assignment, sol.sizes)
 
     out = REPO_ROOT / "results"
     out.mkdir(exist_ok=True)
@@ -30,14 +30,14 @@ def main(cfg_path=DEFAULT_CONFIG):
     print(f"Open manifolds: {', '.join(sol.open_sites)}")
     for s in sol.open_sites:
         ws = [w for w, t in sol.assignment.items() if t == s]
-        print(f"  {s}: {', '.join(ws)}")
+        print(f"  {s} ({sol.sizes[s]}-slot): {', '.join(ws)}")
     df = pd.DataFrame({"item": list(capex), "USD": list(capex.values())})
     df["MUSD"] = df["USD"] / 1e6
     print(df.to_string(index=False, float_format=lambda v: f"{v:,.1f}"))
     df.to_csv(out / "case1_capex.csv", index=False)
 
     fig, ax = plt.subplots(figsize=(8.5, 7))
-    plot_layout(field, sol.assignment, ax=ax,
+    plot_layout(field, sol.assignment, sizes=sol.sizes, ax=ax,
                 title=f"Case 1 - CAPEX-only optimum: {capex['total']/1e6:,.0f} MUSD")
     fig.tight_layout()
     fig.savefig(out / "case1_layout.png", dpi=200)

@@ -9,7 +9,7 @@ def test_every_param_has_value_unit_source(cfg):
 
 
 def test_scientific_notation_is_float(cfg):
-    assert isinstance(param(cfg, "capex.manifold"), float)
+    assert isinstance(param(cfg, "capex.manifold.procurement_base"), float)
     assert isinstance(param(cfg, "solver.mip_gap"), float)
 
 

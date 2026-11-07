@@ -75,9 +75,47 @@ Useful qualitative points:
   estimates are covered in **Chapter 6**.
 - p. 11: Chapter 5 reviews installation vessels (possible source of vessel types and day rates).
 
-## Still needed (placeholders in config)
+## Bai & Bai (2010), Chapter 6 "Subsea Cost Estimation" (pp. 159-192): used for trees, manifolds, vessels
 
-- `capex.xmas_tree`, `capex.manifold`, `manifold.slots`.
-- Best lead: Bai, Y. & Bai, Q. *Subsea Engineering Handbook* (Elsevier, 2010; 2nd ed. 2019),
-  **Chapter 6** "Subsea Cost Estimation" (not in the excerpt above). It is the original source of the pipe costs above and has
-  cost tables for subsea equipment. Available on ScienceDirect through most university libraries.
+Same book as above. Cost data are in 2009 USD unless stated (p. 166). Escalate with Eq. 6-5.
+
+Used in `config/base_case.yaml`:
+
+| Parameter | Value | Where |
+|---|---|---|
+| Tree procurement | C0 2.75 MUSD (2.50-3.00) + Cmisc 0.20 (0.10-0.30) = 2.95 MUSD | p. 174, Eq. 6-6; 5-in, 10 ksi, VXT |
+| Tree SIT | 0.20 MUSD (0.10-0.30) | Table 6-2 |
+| Tree install | 3 days (2-4) on MODU > 1500 m, 950k USD/day (750-1050k) | p. 182, Table 6-3, Table 6-6 |
+| Manifold procurement | C0 3.0 MUSD (2.0-4.0) x slot factor + Cmisc 0.25 (0.15-0.35) | p. 176-177, Eq. 6-7; 4-slot cluster, 10-in, 10 ksi |
+| Slot factor (avg) | 2: 0.70, 4: 1.00, 6: 1.30, 8: 1.50, 10: 2.00 | p. 176 |
+| Manifold SIT | 0.20 MUSD (0.15-0.25) | Table 6-2 |
+| Manifold foundation | 1.0 MUSD suction pile (2007 data) | Table 6-6 |
+| Manifold install | 2 days (1-3) on HLV, 400k USD/day (250-550k) | Table 6-4, Table 6-3 |
+
+Resulting installed unit costs: tree 6.0 MUSD; manifold 2-slot 5.25, 4-slot 6.15, 6-slot 7.05, 8-slot 7.65 MUSD.
+
+Cross-check of the line cost (Kaiser 2016): Table 6-6 (2007 GoM example) gives flowline procurement 4.74 MUSD
++ pipe-lay 43.14 MUSD for 52,026 ft (15.86 km) of dual 10-in flowline, about 3.0 MUSD/km of route (1.5 per line),
+and umbilical procurement 11.6 MUSD for 25,000 ft (7.62 km), about 1.5 MUSD/km before installation. This is the
+same order as Kaiser's 2.24 MUSD/km per line.
+
+Not yet applied (Fig. 6-18 CAPEX steps): tax/transport/spares +2-4 % each, testing 5-10 %, weather allowance
++20-30 % on installation, engineering/PM 5-8 %, insurance 7-11 %, contingency 10-20 %. A uniform factor on all
+costs does not change the optimal layout, but it does change the CAPEX vs. failure-cost balance in case 2.
+
+**For step 5 (reliability/maintenance):**
+
+- Table 6-3 vessel day rates (USD/day, min/avg/max): MSV 40k/80k/120k; ROV 35k/50k/65k;
+  OSV 20k/30k/40k; HLV 250k/400k/550k; MODU > 1500 m 750k/950k/1050k; pipelay deepwater 800k/1000k/1200k.
+- p. 181: mob/demob "from a few hundred thousand dollars to several million dollars".
+- Sec. 6.8.2 RAMEX, Eq. 6-12: RA = Cr + Cp (repair cost incl. vessel spread + lost production).
+  The model in CLAUDE.md follows this.
+- Fig. 6-17 (p. 187-188): downtime = T_RA (waiting for vessel) + T_AR (active repair); lost production
+  "is the sum of all of the individual subsea wells". This supports the manifold-shuts-all-its-wells idea.
+- p. 187: failures of subsea equipment are covered in **Chapter 11** (possible failure-rate source).
+
+## Still needed
+
+- Failure rates (lambda) for trees, manifolds, flowlines and umbilicals: Bai & Bai Ch. 11, or published papers/theses quoting OREDA.
+- Repair durations and vessel waiting/mobilization times.
+- Common cost year: escalate Kaiser (2014) and Bai (2007/2009) to one year.

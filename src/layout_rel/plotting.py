@@ -25,7 +25,8 @@ def _km(p):
 
 
 def plot_layout(field: Field, assignment: dict[str, str] | None = None,
-                title: str = "", ax=None, show_candidates: bool = True):
+                title: str = "", ax=None, show_candidates: bool = True,
+                sizes: dict[str, int] | None = None):
     """Plot wells, manifold sites, host and (optionally) the chosen connections."""
     if ax is None:
         _, ax = plt.subplots(figsize=(7, 7))
@@ -54,7 +55,8 @@ def plot_layout(field: Field, assignment: dict[str, str] | None = None,
             ax.plot(x, y, "s", ms=12, color=C_MANIFOLD, zorder=3, **ring)
         elif show_candidates:
             ax.plot(x, y, "s", ms=11, mfc="none", mec=C_MUTED, mew=1.5, zorder=2)
-        ax.annotate(s, (x, y), xytext=(8, 7), textcoords="offset points",
+        label = f"{s} ({sizes[s]}-slot)" if sizes and s in sizes else s
+        ax.annotate(label, (x, y), xytext=(8, 7), textcoords="offset points",
                     color=C_INK if s in open_sites else C_INK_2, fontsize=9)
     hx, hy = _km(field.pos(field.host))
     ax.plot(hx, hy, "*", ms=18, color=C_HOST, zorder=3, **ring)

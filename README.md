@@ -18,10 +18,8 @@ expected cost of failures. See `CLAUDE.md` for the full project brief and work p
 | 5 | `reliability.py` + `maintenance.py` | next |
 | 6-10 | NPV objective, Monte Carlo, sensitivity, realistic case, figures | to do |
 
-> **Tree, manifold and slot-count values in `config/base_case.yaml` are placeholders** (rough orders of
-> magnitude, no source yet). Line costs come from Kaiser (2016); see `docs/sources.md`. Replace the placeholders with cited values before
-> reporting any result. List the parameters that still need a source with:
-> `python -m layout_rel.config`
+> Cost data: lines from Kaiser (2016); trees, manifolds and vessel rates from Bai & Bai (2010) Ch. 6.
+> Details, page numbers and ranges are in `docs/sources.md`. Costs are not yet escalated to one year.
 
 ## Setup
 
@@ -43,14 +41,14 @@ Outputs go to `results/` (`case1_layout.png`, `case1_capex.csv`).
 
 ## Model (case 1)
 
-Decision variables: `open[s]` (install a manifold at candidate site *s*) and
-`assign[w,s]` (tie in well *w* to site *s*), both binary.
+Decision variables: `size[s,k]` (install a *k*-slot manifold at candidate site *s*,
+k in 2/4/6/8) and `assign[w,s]` (tie in well *w* to site *s*), both binary.
 
-Constraints: each well goes to exactly one manifold, a manifold holds at most
-`manifold.slots` wells, and wells can only go to open sites.
+Constraints: at most one manifold per site, each well goes to exactly one manifold,
+a manifold holds at most *k* wells, and wells can only go to open sites.
 
-Objective: minimise CAPEX = trees + manifolds + infield lines (well to manifold,
-cost per m times length) + tie-back lines (manifold to host, cost per m times length).
+Objective: minimise CAPEX = trees + manifolds (cost depends on slot count) + infield
+lines (well to manifold, cost per m times length) + tie-back lines (manifold to host).
 Solved with HiGHS through Pyomo.
 
 ## Layout of the repo
