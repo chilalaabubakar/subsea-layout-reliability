@@ -161,8 +161,8 @@ reliability:
       source: "Assumption: infield umbilical jumpers / flying leads not modelled separately (no data); their controls side is partly in the SCM rate. Set > 0 to include."
 
 # Repair of each failure: vessel, active repair time, spare-part cost.
-# Downtime = mobilisation + repair_days * (1 + weather_allowance).
-# Repair cost = day rate * (mobilisation + repair time incl. weather) + spare.
+# Downtime = mobilisation + weather_wait_days + repair_days * (1 + weather_allowance).
+# Repair cost = day rate * downtime + spare (vessel on hire while mobilising and waiting).
 maintenance:
   weather_allowance:
     value: 0.25
@@ -177,6 +177,10 @@ maintenance:
       value: 2.0
       unit: days
       source: "Østebø, Kallestad & Grytdal (2001) OTC 13290: module replaced in less than 48 h; Bai & Bai (2010) p. 317 assumes a 2-day delay for a tree failure."
+    weather_wait_days:
+      value: 0.0
+      unit: days (expected wait for a weather window, added to downtime)
+      source: "Base case: 0, weather handled by weather_allowance (Bai & Bai 2010 Fig. 6-18). The North Sea case sets it from the NORA3 hindcast (scripts/weather_windows.py)."
     spare_cost:
       value: 1.703e+6
       unit: USD per failure (2007 USD)
@@ -190,6 +194,10 @@ maintenance:
       value: 4.0
       unit: days
       source: "Assumption: retrieve + reinstall, each 2 days (Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-4, manifold installation 1-3 days)."
+    weather_wait_days:
+      value: 0.0
+      unit: days (expected wait for a weather window, added to downtime)
+      source: "Base case: 0, weather handled by weather_allowance (Bai & Bai 2010 Fig. 6-18). The North Sea case sets it from the NORA3 hindcast (scripts/weather_windows.py)."
     spare_cost:
       value: 1.104e+6
       unit: USD per failure (2007 USD)
@@ -203,6 +211,10 @@ maintenance:
       value: 6.0
       unit: days
       source: "Assumption: midpoint of Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-4 'Flowline (10 km)' installation 4-8 days."
+    weather_wait_days:
+      value: 0.0
+      unit: days (expected wait for a weather window, added to downtime)
+      source: "Base case: 0, weather handled by weather_allowance (Bai & Bai 2010 Fig. 6-18). The North Sea case sets it from the NORA3 hindcast (scripts/weather_windows.py)."
     spare_cost:
       value: 0.59e+6
       unit: USD per failure (2009 USD)
@@ -216,6 +228,10 @@ maintenance:
       value: 6.0
       unit: days
       source: "Zhang et al. (2025) Expert Syst. Appl. 274:127034, Sec. 3.3: replacement of subsea communication cables 'took only 6 days' (South China Sea)."
+    weather_wait_days:
+      value: 0.0
+      unit: days (expected wait for a weather window, added to downtime)
+      source: "Base case: 0, weather handled by weather_allowance (Bai & Bai 2010 Fig. 6-18). The North Sea case sets it from the NORA3 hindcast (scripts/weather_windows.py)."
     spare_cost:
       value: 1.52e+6
       unit: USD per failure (2007 USD)
@@ -353,6 +369,17 @@ sensitivity:
     value: {targets: [economics.plateau_years], mode: set, low: 2.0, high: 5.0}
     unit: yr
     source: "Own assumption range."
+
+# Weather-window settings used by scripts/weather_windows.py (North Sea case).
+weather:
+  msv_hs_limit:
+    value: 2.5
+    unit: m (significant wave height limit for light-vessel ROV/module work)
+    source: "PLACEHOLDER - assumed; needs a source (vessel or DNV marine-operations criteria)."
+  hlv_hs_limit:
+    value: 2.0
+    unit: m (significant wave height limit for heavy lifts through the splash zone)
+    source: "PLACEHOLDER - assumed; needs a source (vessel or DNV marine-operations criteria)."
 
 routing:
   length_factor:

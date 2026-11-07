@@ -1,7 +1,7 @@
 """Repair cost, downtime and lost production per failure; expected yearly failure cost.
 
 Per failure of a component with repair kind k (config `maintenance.k`):
-    downtime     = mobilisation(vessel) + repair_days * (1 + weather_allowance)
+    downtime     = mobilisation(vessel) + weather_wait_days + repair_days * (1 + weather_allowance)
     repair cost  = day_rate(vessel) * downtime + spare_cost
     lost volume  = downtime * (sum of plateau rates of the wells it stops)
 
@@ -32,7 +32,8 @@ class Repair:
 def repair(cfg: dict, kind: str) -> Repair:
     vessel = param(cfg, f"maintenance.{kind}.vessel")
     active = param(cfg, f"maintenance.{kind}.repair_days") * (1 + param(cfg, "maintenance.weather_allowance"))
-    downtime = param(cfg, f"vessels.{vessel}_mobilisation") + active
+    downtime = (param(cfg, f"vessels.{vessel}_mobilisation")
+                + param(cfg, f"maintenance.{kind}.weather_wait_days") + active)
     cost = param(cfg, f"vessels.{vessel}_day_rate") * downtime + param(cfg, f"maintenance.{kind}.spare_cost")
     return Repair(downtime=downtime, cost=cost)
 
