@@ -2,10 +2,9 @@
 # Every parameter has: value, unit, source.
 # Units are SI (m, s, USD) so the code never converts.
 #
-# STATUS: CAPEX values below are ORDER-OF-MAGNITUDE PLACEHOLDERS used to build
-# and test the model. They are marked "PLACEHOLDER" in `source` and MUST be
-# replaced with literature values (with full citations) before any result is
-# reported. Run `python -m layout_rel.config` to list remaining placeholders.
+# STATUS: line costs are from Kaiser (2016). Tree, manifold and slot count are
+# still ORDER-OF-MAGNITUDE PLACEHOLDERS, marked "PLACEHOLDER" in `source`; they
+# MUST be replaced with cited literature values before any result is reported. Run `python -m layout_rel.config` to list remaining placeholders.
 
 field_file:
   value: field_toy.yaml
@@ -28,21 +27,21 @@ capex:
     unit: USD per manifold (installed, incl. foundation)
     source: "PLACEHOLDER - order of magnitude; replace with literature value"
   infield_flowline:
-    value: 1500.0
-    unit: USD/m (well -> manifold flowline/jumper, installed)
-    source: "PLACEHOLDER - ~1.5 MUSD/km; replace with literature value"
+    value: 2243.0
+    unit: USD/m (well -> manifold flowline/jumper, installed, 2014 USD)
+    source: "Kaiser, M.J. (2016). A review of deepwater pipeline construction in the U.S. Gulf of Mexico - contracts, cost, and installation methods. J. Marine Sci. Appl. 15(3):288-306, doi:10.1007/s11804-016-1373-7. Table 2, infield, All: 3.61 MMUSD/mi (2014 USD, sd 3.19), = 3.61e6/1609.344 USD/m. Kaiser normalises (flowline+umbilical cost) by (flowline+umbilical mileage), so the same rate applies per m of each line. GoM data; no split by line type or diameter."
   infield_umbilical:
-    value: 600.0
-    unit: USD/m (manifold -> well umbilical jumper, installed)
-    source: "PLACEHOLDER - ~0.6 MUSD/km; replace with literature value"
+    value: 2243.0
+    unit: USD/m (manifold -> well umbilical jumper, installed, 2014 USD)
+    source: "Kaiser, M.J. (2016). A review of deepwater pipeline construction in the U.S. Gulf of Mexico - contracts, cost, and installation methods. J. Marine Sci. Appl. 15(3):288-306, doi:10.1007/s11804-016-1373-7. Table 2, infield, All: 3.61 MMUSD/mi (2014 USD, sd 3.19), = 3.61e6/1609.344 USD/m. Kaiser normalises (flowline+umbilical cost) by (flowline+umbilical mileage), so the same rate applies per m of each line. GoM data; no split by line type or diameter."
   tieback_flowline:
-    value: 3000.0
-    unit: USD/m (manifold -> host production flowline, installed)
-    source: "PLACEHOLDER - ~3 MUSD/km; replace with literature value"
+    value: 2243.0
+    unit: USD/m (manifold -> host production flowline, installed, 2014 USD)
+    source: "Kaiser, M.J. (2016). A review of deepwater pipeline construction in the U.S. Gulf of Mexico - contracts, cost, and installation methods. J. Marine Sci. Appl. 15(3):288-306, doi:10.1007/s11804-016-1373-7. Table 2, infield, All: 3.61 MMUSD/mi (2014 USD, sd 3.19), = 3.61e6/1609.344 USD/m. Kaiser normalises (flowline+umbilical cost) by (flowline+umbilical mileage), so the same rate applies per m of each line. GoM data; no split by line type or diameter."
   tieback_umbilical:
-    value: 1200.0
-    unit: USD/m (host -> manifold main umbilical, installed)
-    source: "PLACEHOLDER - ~1.2 MUSD/km; replace with literature value"
+    value: 2243.0
+    unit: USD/m (host -> manifold main umbilical, installed, 2014 USD)
+    source: "Kaiser, M.J. (2016). A review of deepwater pipeline construction in the U.S. Gulf of Mexico - contracts, cost, and installation methods. J. Marine Sci. Appl. 15(3):288-306, doi:10.1007/s11804-016-1373-7. Table 2, infield, All: 3.61 MMUSD/mi (2014 USD, sd 3.19), = 3.61e6/1609.344 USD/m. Kaiser normalises (flowline+umbilical cost) by (flowline+umbilical mileage), so the same rate applies per m of each line. GoM data; no split by line type or diameter."
 
 routing:
   length_factor:

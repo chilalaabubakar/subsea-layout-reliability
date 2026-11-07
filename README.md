@@ -18,8 +18,8 @@ expected cost of failures. See `CLAUDE.md` for the full project brief and work p
 | 5 | `reliability.py` + `maintenance.py` | next |
 | 6-10 | NPV objective, Monte Carlo, sensitivity, realistic case, figures | to do |
 
-> **CAPEX values in `config/base_case.yaml` are placeholders** (rough orders of
-> magnitude, no source yet). Replace them with cited literature values before
+> **Tree, manifold and slot-count values in `config/base_case.yaml` are placeholders** (rough orders of
+> magnitude, no source yet). Line costs come from Kaiser (2016); see `docs/sources.md`. Replace the placeholders with cited values before
 > reporting any result. List the parameters that still need a source with:
 > `python -m layout_rel.config`
 
