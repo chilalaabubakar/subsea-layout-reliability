@@ -190,9 +190,9 @@ deepwater concept development. OTC 13290, Offshore Technology Conference, Housto
 - Fig. 2: reliability in a life-cycle-cost view (CAPEX + OPEX + regularity loss "REGEX"). Good for the
   introduction.
 
-## Mahmoudi et al. (2021): critical failure rates of subsea control module (SCM) components (OREDA)
+## Mahmoudi (2021): critical failure rates of subsea control module (SCM) components (OREDA)
 
-Mahmoudi, J. et al. (2021). SIL analysis of subsea control system components based on a typical OREDA
+Mahmoudi, J. (2021). SIL analysis of subsea control system components based on a typical OREDA
 database. *Quality and Reliability Engineering International* 37, 3297-3313. https://doi.org/10.1002/qre.2909
 
 - Sec. 1: OREDA classifies failures as critical, degraded, incipient, unknown. Sec. 3: here
@@ -326,7 +326,7 @@ Breivik et al. (2022), J. Geophys. Res. Oceans 127, e2021JC018196; data CC BY 4.
 | Manifold | 23.82e-6/h | 0.209 | Silva & Guedes Soares 2025 (OREDA 2022) | all failure modes |
 | Manifold (cross-check) | 41.4e-6/h | 0.363 | Liu et al. 2024 (OREDA 2015) | 23 components, series |
 | Tree, structure and valves | 2.46e-7/h (upper 2.05e-6) | 0.0022 (0.018) | Bai & Bai Table 11-14 (OREDA 2002) | 8 components |
-| Tree SCM (controls) | 8.24e-6/h | 0.072 | Mahmoudi et al. 2021 Table 7 (OREDA) | critical, one of each component |
+| Tree SCM (controls) | 8.24e-6/h | 0.072 | Mahmoudi 2021 Table 7 (OREDA) | critical, one of each component |
 | **Tree total (base)** | 8.49e-6/h | **0.074** | sum of the two rows above | |
 | Well control system (cross-check) | 2.6-4.2e-5/h | 0.23-0.37 | IRF 2018 (OREDA) | incl. topside MCS |
 | Rigid flowline | 2.4e-4 per km-yr | | DNV GL 2017 via Silva 2025 | small diameter |

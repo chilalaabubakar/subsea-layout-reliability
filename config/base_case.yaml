@@ -125,7 +125,7 @@ reliability:
     failure_rate_per_h:
       value: 8.49e-6
       unit: 1/h per tree
-      source: "Sum of (a) Bai & Bai (2010) Table 11-14 mean column, 8 tree components, OREDA 2002: 0.246e-6/h, and (b) Mahmoudi et al. (2021) Qual. Reliab. Eng. Int. 37:3297, Table 7, lambda_crit of one of each SCM component (SEM 5.155, solenoid valve 0.3169, power/signal coupler 0.1203, hydraulic coupling 0.0349, PSU 0.8881, check valve 0.2146, valve other 1.5089) = 8.24e-6/h. Lower bound: real SCMs have many solenoid valves."
+      source: "Sum of (a) Bai & Bai (2010) Table 11-14 mean column, 8 tree components, OREDA 2002: 0.246e-6/h, and (b) Mahmoudi (2021) Qual. Reliab. Eng. Int. 37:3297, Table 7, lambda_crit of one of each SCM component (SEM 5.155, solenoid valve 0.3169, power/signal coupler 0.1203, hydraulic coupling 0.0349, PSU 0.8881, check valve 0.2146, valve other 1.5089) = 8.24e-6/h. Lower bound: real SCMs have many solenoid valves."
   manifold:
     failure_rate_per_h:
       value: 23.82e-6
@@ -348,7 +348,7 @@ sensitivity:
   tree_failure_rate:
     value: {targets: [reliability.xmas_tree.failure_rate_per_h], mode: set, low: 4.25e-6, high: 16.3e-6}
     unit: 1/h
-    source: "Low: base x0.5 (CLAUDE.md). High (our estimate): SCM with 20 solenoid control valves (Mahmoudi et al. 2021 Table 7, 14.3e-6/h) + Bai & Bai Table 11-14 upper column (2.05e-6/h)."
+    source: "Low: base x0.5 (CLAUDE.md). High (our estimate): SCM with 20 solenoid control valves (Mahmoudi 2021 Table 7, 14.3e-6/h) + Bai & Bai Table 11-14 upper column (2.05e-6/h)."
   umbilical_failure_rate:
     value: {targets: [reliability.tieback_umbilical.failure_rate_per_unit], mode: set, low: 0.2e-6, high: 14.0e-6}
     unit: 1/h
