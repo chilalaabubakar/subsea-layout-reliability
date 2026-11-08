@@ -291,7 +291,7 @@ risk:
   alpha:
     value: 0.95
     unit: "- (CVaR confidence level: mean of the worst 5 % of outcomes)"
-    source: "Common choice in risk-averse optimisation (Rockafellar & Uryasev 2000, J. Risk 2(3):21-41)."
+    source: "Common choice in risk-averse optimisation (Rockafellar & Uryasev 2000, J. Risk 2:21-42, doi:10.21314/JOR.2000.038)."
   weight:
     value: 0.0
     unit: "- (0 = expected value only, 1 = CVaR only)"
