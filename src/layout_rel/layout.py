@@ -2,7 +2,8 @@
 
 The field is stored as a NetworkX graph:
 - nodes carry ``kind`` ("well", "site", "host"), ``pos`` (x, y) in metres and an
-  optional display ``label`` for figures (mathtext allowed, e.g. "$M_1$");
+  optional display ``label`` for figures (mathtext allowed, e.g. "$M_1$") and an
+  optional ``label_dir`` (compass point, e.g. "SW") to fix where the label goes;
 - edges are the *candidate* connections with a ``length`` attribute in metres:
   every well to every manifold site, and every site to the host.
 """
@@ -54,9 +55,11 @@ def build_field(data: dict, length_factor: float = 1.0) -> Field:
     wells = [w["name"] for w in data["wells"]]
     sites = [s["name"] for s in data["manifold_sites"]]
     for w in data["wells"]:
-        g.add_node(w["name"], kind="well", pos=(w["x"], w["y"]), label=w.get("label", w["name"]))
+        g.add_node(w["name"], kind="well", pos=(w["x"], w["y"]), label=w.get("label", w["name"]),
+                   label_dir=w.get("label_dir", ""))
     for s in data["manifold_sites"]:
-        g.add_node(s["name"], kind="site", pos=(s["x"], s["y"]), label=s.get("label", s["name"]))
+        g.add_node(s["name"], kind="site", pos=(s["x"], s["y"]), label=s.get("label", s["name"]),
+                   label_dir=s.get("label_dir", ""))
 
     for s in sites:
         for w in wells:

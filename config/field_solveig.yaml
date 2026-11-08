@@ -32,12 +32,14 @@ wells:
   sodir_well: 16/4-BC-1
 - name: W_BF2
   label: BF-2
+  label_dir: S
   x: 2254.5
   y: -346.2
   template: 16/4 SOLVEIG BF
   sodir_well: 16/4-BF-2
 - name: W_BF4
   label: BF-4
+  label_dir: S
   x: 2254.5
   y: -346.2
   template: 16/4 SOLVEIG BF
@@ -61,6 +63,7 @@ manifold_sites:
   note: at template BF (2 wells)
 - name: M_BG
   label: $M_3$
+  label_dir: W
   x: 759.5
   y: 4061.7
   note: at template BG (north, closest to host)

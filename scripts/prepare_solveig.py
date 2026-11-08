@@ -56,7 +56,9 @@ def main():
     for r in w.sort_values("wlbWell").itertuples():
         x, y = pos[r.wlbProductionFacility]
         name = "W_" + r.wlbWell.split("-", 1)[1].replace("-", "")
-        well_list.append({"name": name, "label": r.wlbWell.split("-", 1)[1], "x": x, "y": y,
+        well_list.append({"name": name, "label": r.wlbWell.split("-", 1)[1],
+                          **({"label_dir": "S"} if r.wlbProductionFacility.endswith(" BF") else {}),
+                          "x": x, "y": y,
                           "template": r.wlbProductionFacility, "sodir_well": r.wlbWell})
 
     # candidate manifold sites: the real manifold, the two phase-2 templates, and the well centroid
@@ -66,7 +68,7 @@ def main():
         {"name": "M_ACT", "label": "$M_1$", "x": pos[man][0], "y": pos[man][1], "note": f"real manifold ({man})"},
         {"name": "M_BF", "label": "$M_2$", "x": pos["16/4 SOLVEIG BF"][0], "y": pos["16/4 SOLVEIG BF"][1],
          "note": "at template BF (2 wells)"},
-        {"name": "M_BG", "label": "$M_3$", "x": pos["16/4 SOLVEIG BG"][0], "y": pos["16/4 SOLVEIG BG"][1],
+        {"name": "M_BG", "label": "$M_3$", "label_dir": "W", "x": pos["16/4 SOLVEIG BG"][0], "y": pos["16/4 SOLVEIG BG"][1],
          "note": "at template BG (north, closest to host)"},
         {"name": "M_CEN", "label": "$M_4$", "x": round(float(xs.mean()), 1), "y": round(float(ys.mean()), 1),
          "note": "centroid of the 6 producing wells (cf. Silva & Guedes Soares 2025 Eqs. 44-45)"},
