@@ -49,10 +49,13 @@ def plot_layout(field: Field, assignment: dict[str, str] | None = None,
                 solid_capstyle="round")
 
     ring = dict(markeredgecolor="white", markeredgewidth=1.5)
+    at_pos: dict[tuple[float, float], list[str]] = {}       # wells on one template share a label
     for w in field.wells:
-        x, y = _km(field.pos(w))
+        at_pos.setdefault(field.pos(w), []).append(field.label(w))
+    for p, labels in at_pos.items():
+        x, y = _km(p)
         ax.plot(x, y, "^", ms=11, color=C_WELL, zorder=3, **ring)
-        ax.annotate(field.label(w), (x, y), xytext=(7, -13), textcoords="offset points",
+        ax.annotate(", ".join(labels), (x, y), xytext=(7, -13), textcoords="offset points",
                     color=C_INK, fontsize=9)
     for s in field.sites:
         x, y = _km(field.pos(s))
