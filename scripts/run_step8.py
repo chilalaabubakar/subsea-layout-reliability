@@ -7,8 +7,8 @@
 
 Usage:  python scripts/run_step8.py [--risk RHO] [path/to/config.yaml]
         --risk RHO  also run the one-at-a-time study with CVaR weight RHO (slower, ~5 min)
-Writes: results/step8_oat.csv, results/step8_tornado.png, results/step8_map.csv,
-        results/step8_map.png (and results/step8_oat_risk.csv with --risk)
+Writes (in results/ or results/<config name>/): step8_oat.csv, step8_tornado.png,
+        step8_map.csv, step8_map.png (and step8_oat_risk.csv with --risk)
 """
 import argparse
 from pathlib import Path
@@ -20,12 +20,11 @@ import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
 
-from layout_rel.config import DEFAULT_CONFIG, REPO_ROOT, field_path, load_config, param, placeholders
+from layout_rel.config import DEFAULT_CONFIG, field_path, load_config, param, placeholders, results_dir
 from layout_rel.layout import load_field
 from layout_rel.plotting import C_GRID, C_INK, C_INK_2, C_MANIFOLD, C_WELL
 from layout_rel.sensitivity import grid, one_at_a_time, scale
 
-OUT = REPO_ROOT / "results"
 
 
 def style(ax):
@@ -99,7 +98,8 @@ def switching_map(field, cfg, path: Path) -> pd.DataFrame:
     b = cfg["vessels"]
     ax.set_xlabel(f"Vessel mobilisation time (x base: {b['msv_mobilisation']['value']:g} d light, "
                   f"{b['hlv_mobilisation']['value']:g} d heavy vessel)", color=C_INK_2)
-    ax.set_ylabel("Manifold failure rate (x base 23.82 per 10^6 h)", color=C_INK_2)
+    ax.set_ylabel(f"Manifold failure rate (x base {cfg['reliability']['manifold']['failure_rate_per_h']['value'] * 1e6:g} per 10^6 h)",
+                  color=C_INK_2)
     ax.set_title("Number of manifolds in the NPV-optimal layout\n"
                  "(cell text: manifolds, and NPV gain over the CAPEX-only layout in MUSD)",
                  loc="left", color=C_INK, fontsize=11)
@@ -122,6 +122,7 @@ def main():
     ap.add_argument("--risk", type=float, default=None)
     args = ap.parse_args()
     cfg = load_config(Path(args.config))
+    OUT = results_dir(args.config)
     field = load_field(field_path(cfg), param(cfg, "routing.length_factor"))
 
     pd.set_option("display.width", 250)

@@ -325,6 +325,10 @@ sensitivity:
     value: {targets: [vessels.msv_mobilisation, vessels.hlv_mobilisation], mode: scale, low: 0.5, high: 2.0}
     unit: "- (x base)"
     source: "Assumed range; base values not yet sourced (CLAUDE.md novelty angle 2)."
+  weather_wait:
+    value: {targets: [maintenance.xmas_tree.weather_wait_days, maintenance.manifold.weather_wait_days, maintenance.flowline.weather_wait_days, maintenance.umbilical.weather_wait_days], mode: scale, low: 0.5, high: 2.0}
+    unit: "- (x base; 0 in the toy case, NORA3/DNV values in the North Sea case)"
+    source: "Assumed range around the hindcast-based waits (vessel Hs limits and lift duration are not yet sourced); seasonal extremes are run as separate cases (solveig_weather_winter/summer)."
   repair_time:
     value: {targets: [maintenance.xmas_tree.repair_days, maintenance.manifold.repair_days, maintenance.flowline.repair_days, maintenance.umbilical.repair_days], mode: scale, low: 0.5, high: 2.0}
     unit: "- (x base)"
