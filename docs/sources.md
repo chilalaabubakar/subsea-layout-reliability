@@ -92,7 +92,7 @@ Used in `config/base_case.yaml`:
 | Manifold foundation | 1.0 MUSD suction pile (2007 data) | Table 6-6 |
 | Manifold install | 2 days (1-3) on HLV, 400k USD/day (250-550k) | Table 6-4, Table 6-3 |
 
-Resulting installed unit costs: tree 6.0 MUSD; manifold 2-slot 5.25, 4-slot 6.15, 6-slot 7.05, 8-slot 7.65 MUSD.
+Resulting installed unit costs (config/base_case.yaml): tree 6.0 MUSD; manifold 2-slot 4.35, 4-slot 5.25, 6-slot 6.15, 8-slot 6.75 MUSD.
 
 Cross-check of the line cost (Kaiser 2016): Table 6-6 (2007 GoM example) gives flowline procurement 4.74 MUSD
 + pipe-lay 43.14 MUSD for 52,026 ft (15.86 km) of dual 10-in flowline, about 3.0 MUSD/km of route (1.5 per line),

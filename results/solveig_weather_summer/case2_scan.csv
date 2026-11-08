@@ -9,4 +9,4 @@ manifold failure rate x,0.5,1,M_CEN(6-slot: 6 wells),0.0
 manifold failure rate x,1.0,1,M_CEN(6-slot: 6 wells),0.0
 manifold failure rate x,2.0,1,M_CEN(6-slot: 6 wells),0.0
 manifold failure rate x,3.0,1,M_CEN(6-slot: 6 wells),0.0
-manifold failure rate x,4.0,2,M_BG(2-slot: 2 wells) + M_CEN(4-slot: 4 wells),3.84369127841568
+manifold failure rate x,4.0,2,M_BG(2-slot: 2 wells) + M_CEN(4-slot: 4 wells),3.7066076271572115

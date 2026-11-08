@@ -155,7 +155,8 @@ def fig9_map(res, out):
             face = cmap(0.15 + 0.85 * v / vmax) if k > 1 else "#F2F2F0"
             ax.add_patch(Rectangle((j, i), 1, 1, facecolor=face, edgecolor="white", lw=2))
             dark = k > 1 and v / vmax > 0.45
-            ax.text(j + 0.5, i + 0.5, f"{v:.0f}", ha="center", va="center", fontsize=11,
+            txt = "0" if v == 0 else (f"{v:.1f}" if v < 10 else f"{v:.0f}")
+            ax.text(j + 0.5, i + 0.5, txt, ha="center", va="center", fontsize=11,
                     color="white" if dark else (P["ink"] if k > 1 else P["grey_mid"]))
     j0, i0 = list(gain.columns).index(1), list(gain.index).index(1)
     ax.add_patch(Rectangle((j0, i0), 1, 1, fill=False, edgecolor=P["ink"], lw=2.5))

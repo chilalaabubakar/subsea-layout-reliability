@@ -55,7 +55,9 @@ def write_case(name, base_cfg_file, wait_days, mode, season, years, note):
     case = {"_extends": base_cfg_file,
             "maintenance": {"weather_allowance": {
                 "value": 0.0, "unit": "fraction of active repair time",
-                "source": "0 here: waiting on weather is modelled explicitly from the NORA3 hindcast (weather_wait_days)."}}}
+                "source": "0 here: waiting on weather is modelled explicitly from the NORA3 hindcast (weather_wait_days)."}},
+            # the 20-30 % allowance is replaced by explicit waits here, so it is not a sensitivity input
+            "sensitivity": {"weather_allowance": None}}
     for kind, d in wait_days.items():
         case["maintenance"][kind] = {"weather_wait_days": {
             "value": round(float(d), 2), "unit": "days (expected wait for a weather window, added to downtime)",

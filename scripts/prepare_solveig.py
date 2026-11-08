@@ -9,8 +9,11 @@ Outputs:
     config/field_solveig.yaml                    wells, candidate manifold sites, host (local x/y in m)
     data/processed/solveig_production.csv        monthly oil rate per producing well (phase 1)
 
-Coordinates: local east/north metres from an equirectangular projection about the real
-manifold (error well below 0.1 % over 20 km), datum ED50 as given by Sodir.
+Coordinates: local east/north metres about the real manifold, datum ED50 as given by Sodir
+(International 1924 ellipsoid). East-west and north-south scales use the ellipsoid's radii of
+curvature at the reference latitude (N cos(lat0) and M); distances then agree with the ellipsoidal
+geodesic to better than 0.01 % over the 20 km extent (tests/test_layout.py). A spherical Earth
+radius would make them 0.2-0.4 % too short at this latitude.
 """
 from pathlib import Path
 
@@ -22,7 +25,8 @@ from layout_rel.config import REPO_ROOT
 from layout_rel.units import BBL, DAY
 
 RAW = REPO_ROOT / "data" / "raw" / "sodir"
-R_EARTH = 6371008.8          # m, mean Earth radius
+ED50_A = 6378388.0           # m, International 1924 ellipsoid (datum of Sodir ED50 coordinates)
+ED50_F = 1 / 297.0
 FIELD, HOST = "SOLVEIG", "EDVARD GRIEG"
 # phase-1 plateau used for the well rate (3 producers BA-1, BB-1, BC-1 on stream)
 PLATEAU = ("2023-04", "2025-08")
@@ -37,6 +41,15 @@ def latlon(f: pd.DataFrame) -> pd.DataFrame:
     return f
 
 
+def local_scale(lat0: float) -> tuple[float, float]:
+    """(m per radian of longitude, m per radian of latitude) on the ED50 ellipsoid at lat0."""
+    e2 = ED50_F * (2 - ED50_F)
+    s2 = np.sin(np.radians(lat0)) ** 2
+    n = ED50_A / np.sqrt(1 - e2 * s2)                    # prime-vertical radius
+    m = ED50_A * (1 - e2) / (1 - e2 * s2) ** 1.5         # meridional radius
+    return n * np.cos(np.radians(lat0)), m
+
+
 def main():
     fac = latlon(pd.read_csv(RAW / "facility_fixed.csv", encoding="utf-8-sig", low_memory=False))
     wells = pd.read_csv(RAW / "wellbore_development_all.csv", encoding="utf-8-sig", low_memory=False)
@@ -45,8 +58,8 @@ def main():
     f = fac[(fac.fclBelongsToName.astype(str).str.upper() == FIELD) | (fac.fclName.str.upper() == HOST)]
     ref = f[f.fclName.str.upper().str.contains("MANIFOLD")].iloc[0]
     lat0, lon0 = ref.lat, ref.lon
-    f = f.assign(x=np.radians(f.lon - lon0) * R_EARTH * np.cos(np.radians(lat0)),
-                 y=np.radians(f.lat - lat0) * R_EARTH)
+    rx, ry = local_scale(lat0)
+    f = f.assign(x=np.radians(f.lon - lon0) * rx, y=np.radians(f.lat - lat0) * ry)
     pos = {r.fclName: (round(float(r.x), 1), round(float(r.y), 1)) for r in f.itertuples()}
 
     # production wells (main bores, not observation pilots), one entry per well

@@ -35,3 +35,5 @@ maintenance:
       source: 'Computed by scripts/weather_windows.py: NORA3 Hs at Solveig 2014-01..2023-12,
         mode ''whole'', year start times; DNV-ST-N001 (2023) Table 2-4 alpha, T_R
         = 2 T_POP, T_C >= 6 h.'
+sensitivity:
+  weather_allowance: null

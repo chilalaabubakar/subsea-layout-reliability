@@ -32,3 +32,13 @@ def test_scale_setter(cfg):
 def test_reliability_aware_design_never_loses(field, cfg):
     r = evaluate(field, apply(cfg, "slot_fraction", "high"))
     assert r["value of reliability-aware design [MUSD]"] >= -1e-6
+
+
+def test_weather_case_drops_allowance_item():
+    """With explicit weather waits the 20-30 % allowance is not a sensitivity input (would double count)."""
+    from layout_rel.config import CONFIG_DIR, load_config, param
+    from layout_rel.sensitivity import items
+    cfg = load_config(CONFIG_DIR / "solveig_weather.yaml")
+    assert param(cfg, "maintenance.weather_allowance") == 0
+    assert "weather_allowance" not in items(cfg)
+    assert "weather_allowance" in items(load_config(CONFIG_DIR / "base_case.yaml"))

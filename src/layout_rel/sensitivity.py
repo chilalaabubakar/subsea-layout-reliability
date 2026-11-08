@@ -49,7 +49,8 @@ def apply(cfg: dict, name: str, level: str) -> dict:
 
 
 def items(cfg: dict) -> list[str]:
-    return [k for k in cfg.get("sensitivity", {}) if not k.startswith("_")]
+    """Sensitivity items of a config; a case config switches one off by setting it to null."""
+    return [k for k, v in cfg.get("sensitivity", {}).items() if not k.startswith("_") and v is not None]
 
 
 def layout_label(sol) -> str:
