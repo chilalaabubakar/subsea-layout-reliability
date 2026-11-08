@@ -14,3 +14,14 @@ def test_inset_only_for_long_tieback():
     toy = load_field(REPO_ROOT / "config" / "field_toy.yaml")
     ax = plot_layout(toy, {w: "M2" for w in toy.wells}, sizes={"M2": 6})
     assert not _insets(ax)
+
+
+def test_pubstyle_finalize(tmp_path):
+    import matplotlib.pyplot as plt
+    from layout_rel.pubstyle import apply_publication_style, finalize_figure
+    apply_publication_style()
+    fig, ax = plt.subplots()
+    ax.plot([0, 1], [0, 1])
+    paths = finalize_figure(fig, tmp_path / "x")
+    assert [p.suffix for p in paths] == [".png", ".pdf"] and all(p.exists() for p in paths)
+    assert plt.rcParams["axes.spines.top"] is False

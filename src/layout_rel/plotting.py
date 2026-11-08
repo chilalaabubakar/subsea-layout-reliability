@@ -14,14 +14,16 @@ def layout_text(field: Field, assignment: dict[str, str], sizes: dict[str, int])
     """Short figure label of a layout, e.g. "$M_1$ (4 slots) + $M_3$ (2 slots)"."""
     return " + ".join(f"{field.label(s)} ({sizes[s]} slots)" for s in sorted(sizes))
 
-# Palette (validated categorical slots 1-3 + neutral ink). Plot styling only.
-C_WELL = "#2a78d6"
-C_MANIFOLD = "#eb6834"
-C_HOST = "#1baf7a"
-C_INK = "#0b0b0b"
-C_INK_2 = "#52514e"
-C_MUTED = "#a3a29c"
-C_GRID = "#e6e5e1"
+from .pubstyle import PALETTE
+
+# Palette of the figures4papers publication style (see pubstyle.py). Plot styling only.
+C_WELL = PALETTE["grey_mid"]          # wells: context
+C_MANIFOLD = PALETTE["blue_main"]     # open manifolds: the decision
+C_HOST = PALETTE["teal"]
+C_INK = PALETTE["ink"]
+C_INK_2 = PALETTE["grey_dark"]
+C_MUTED = "#A3A29C"
+C_GRID = "#E6E5E1"
 M_PER_KM = 1000.0
 
 
@@ -150,12 +152,15 @@ def _style(ax) -> None:
 
 def plot_layout(field: Field, assignment: dict[str, str] | None = None,
                 title: str = "", ax=None, show_candidates: bool = True,
-                sizes: dict[str, int] | None = None, inset: bool | None = None):
+                sizes: dict[str, int] | None = None, inset: bool | None = None,
+                zoom: bool = False):
     """Plot wells, manifold sites, host and (optionally) the chosen connections.
 
     ``inset``: draw a zoomed inset of the wells and manifold sites, with their labels
     there instead of on the main map. None = automatic (when the cluster is small
     compared with the distance to the host, as for a long tie-back).
+    ``zoom``: show only the wells and manifold sites (labels on), with an arrow
+    toward the host instead of the full map; for side-by-side layout comparisons.
     """
     if ax is None:
         _, ax = plt.subplots(figsize=(7, 7))
@@ -167,7 +172,28 @@ def plot_layout(field: Field, assignment: dict[str, str] | None = None,
     span = max(bx1 - bx0, by1 - by0)
     total = max(abs(hx - (x0 + x1) / 2), abs(hy - (y0 + y1) / 2)) + span / 2
     if inset is None:
-        inset = span < INSET_RATIO * total
+        inset = span < INSET_RATIO * total and not zoom
+    if zoom:
+        import math
+        _draw(ax, field, assignment, sizes, show_candidates, labels=True, fs=11,
+              r_km=0.09 * span, frame=(x0, x1, y0, y1))
+        ax.set_xlim(x0, x1)
+        ax.set_ylim(y0, y1)
+        ax.set_aspect("equal", adjustable="box")
+        cx, cy = (bx0 + bx1) / 2, (by0 + by1) / 2
+        d = math.hypot(hx - cx, hy - cy)
+        ux, uy = (hx - cx) / d, (hy - cy) / d
+        tip = (x1 - 0.12 * (x1 - x0), y1 - 0.03 * (y1 - y0))
+        ax.annotate(f"To {field.label(field.host)} (host)", xy=tip,
+                    xytext=(tip[0] - 0.35 * ux * span * 0.3 - 0.02 * (x1 - x0), tip[1] - 0.12 * (y1 - y0)),
+                    ha="right", va="top", fontsize=11, color=C_INK,
+                    arrowprops=dict(arrowstyle="-|>", color=C_HOST, lw=2))
+        ax.set_xlabel("Easting [km]", color=C_INK_2)
+        ax.set_ylabel("Northing [km]", color=C_INK_2)
+        _style(ax)
+        if title:
+            ax.set_title(title, loc="left", color=C_INK, fontsize=11)
+        return ax
 
     _draw(ax, field, assignment, sizes, show_candidates, labels=not inset, r_km=0.07 * total)
     htype = field.graph.nodes[field.host].get("host_type", "")
@@ -189,7 +215,9 @@ def plot_layout(field: Field, assignment: dict[str, str] | None = None,
         axin.tick_params(labelsize=7)
         _style(axin)
         for sp in axin.spines.values():
+            sp.set_visible(True)
             sp.set_color(C_INK_2)
+            sp.set_linewidth(1.2)
         axin.set_title("Well area (zoom)", loc="left", fontsize=8, color=C_INK_2)
         ax.indicate_inset_zoom(axin, edgecolor=C_INK_2)
 
