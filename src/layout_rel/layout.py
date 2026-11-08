@@ -1,7 +1,8 @@
 """Field geometry: wells, candidate manifold sites, host, and distances.
 
 The field is stored as a NetworkX graph:
-- nodes carry ``kind`` ("well", "site", "host") and ``pos`` (x, y) in metres;
+- nodes carry ``kind`` ("well", "site", "host"), ``pos`` (x, y) in metres and an
+  optional display ``label`` for figures (mathtext allowed, e.g. "$M_1$");
 - edges are the *candidate* connections with a ``length`` attribute in metres:
   every well to every manifold site, and every site to the host.
 """
@@ -27,6 +28,10 @@ class Field:
     def pos(self, node: str) -> tuple[float, float]:
         return self.graph.nodes[node]["pos"]
 
+    def label(self, node: str) -> str:
+        """Display name for figures (matplotlib mathtext allowed, e.g. "$M_1$")."""
+        return self.graph.nodes[node].get("label", node)
+
     def length(self, a: str, b: str) -> float:
         """Route length between two nodes [m]."""
         return self.graph.edges[a, b]["length"]
@@ -45,13 +50,13 @@ def build_field(data: dict, length_factor: float = 1.0) -> Field:
     g = nx.Graph()
     host = data["host"]["name"]
     g.add_node(host, kind="host", pos=(data["host"]["x"], data["host"]["y"]),
-               host_type=data["host"].get("type", ""))
+               host_type=data["host"].get("type", ""), label=data["host"].get("label", host))
     wells = [w["name"] for w in data["wells"]]
     sites = [s["name"] for s in data["manifold_sites"]]
     for w in data["wells"]:
-        g.add_node(w["name"], kind="well", pos=(w["x"], w["y"]))
+        g.add_node(w["name"], kind="well", pos=(w["x"], w["y"]), label=w.get("label", w["name"]))
     for s in data["manifold_sites"]:
-        g.add_node(s["name"], kind="site", pos=(s["x"], s["y"]))
+        g.add_node(s["name"], kind="site", pos=(s["x"], s["y"]), label=s.get("label", s["name"]))
 
     for s in sites:
         for w in wells:

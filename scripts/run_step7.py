@@ -27,7 +27,7 @@ from layout_rel.economics import npv_breakdown
 from layout_rel.layout import load_field
 from layout_rel.montecarlo import default_sizes, sample_scenarios, simulate_layout, summary
 from layout_rel.optimizer import optimize_capex, optimize_npv
-from layout_rel.plotting import C_GRID, C_INK, C_INK_2, C_MANIFOLD, C_WELL
+from layout_rel.plotting import C_GRID, C_INK, C_INK_2, C_MANIFOLD, C_WELL, layout_text
 
 M = 1e6
 
@@ -87,10 +87,11 @@ def main(cfg_path=DEFAULT_CONFIG):
     data = [sims[k].total_pv / M for k in names]
     bins = np.linspace(0, np.percentile(np.concatenate(data), 99.8), 60)
     for name, x, col in zip(names, data, (C_WELL, C_MANIFOLD)):
-        ax.hist(x, bins=bins, histtype="step", lw=2, color=col, label=name)
+        ax.hist(x, bins=bins, histtype="step", lw=2, color=col,
+                label=layout_text(field, *layouts[name]))
         cv = summary(x * M, alpha)[ck] / M
         ax.axvline(cv, color=col, lw=1.5, ls="--")
-        ax.annotate(f"{ck.upper()} {cv:,.0f}", (cv, ax.get_ylim()[1] * (0.9 if col == C_WELL else 0.8)),
+        ax.annotate(f"CVaR$_{{{int(alpha * 100)}}}$ {cv:,.0f}", (cv, ax.get_ylim()[1] * (0.9 if col == C_WELL else 0.8)),
                     xytext=(5, 0), textcoords="offset points", color=C_INK_2, fontsize=9)
     ax.set_xlabel("Failure cost over field life, present value [MUSD]", color=C_INK_2)
     ax.set_ylabel("Simulated field lives", color=C_INK_2)

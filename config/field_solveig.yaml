@@ -7,54 +7,65 @@ coordinates: local x = east, y = north [m] about 16/4 SOLVEIG MANIFOLD, ED50 lat
 water_depth_m: 95.0
 host:
   name: EDVARD_GRIEG
+  label: Edvard Grieg
   type: fixed jacket platform
   x: 2950.1
   y: 18462.7
 wells:
 - name: W_BA1
+  label: BA-1
   x: 401.4
   y: 1102.7
   template: 16/4 SOLVEIG BA
   sodir_well: 16/4-BA-1
 - name: W_BB1
+  label: BB-1
   x: 126.4
   y: 839.8
   template: 16/4 SOLVEIG BB
   sodir_well: 16/4-BB-1
 - name: W_BC1
+  label: BC-1
   x: 200.1
   y: 100.7
   template: 16/4 SOLVEIG BC
   sodir_well: 16/4-BC-1
 - name: W_BF2
+  label: BF-2
   x: 2254.5
   y: -346.2
   template: 16/4 SOLVEIG BF
   sodir_well: 16/4-BF-2
 - name: W_BF4
+  label: BF-4
   x: 2254.5
   y: -346.2
   template: 16/4 SOLVEIG BF
   sodir_well: 16/4-BF-4
 - name: W_BG1
+  label: BG-1
   x: 759.5
   y: 4061.7
   template: 16/4 SOLVEIG BG
   sodir_well: 16/4-BG-1
 manifold_sites:
 - name: M_ACT
+  label: $M_1$
   x: 0.0
   y: 0.0
   note: real manifold (16/4 SOLVEIG MANIFOLD)
 - name: M_BF
+  label: $M_2$
   x: 2254.5
   y: -346.2
   note: at template BF (2 wells)
 - name: M_BG
+  label: $M_3$
   x: 759.5
   y: 4061.7
   note: at template BG (north, closest to host)
 - name: M_CEN
+  label: $M_4$
   x: 999.4
   y: 902.1
   note: centroid of the 6 producing wells (cf. Silva & Guedes Soares 2025 Eqs. 44-45)

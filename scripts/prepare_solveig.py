@@ -56,19 +56,19 @@ def main():
     for r in w.sort_values("wlbWell").itertuples():
         x, y = pos[r.wlbProductionFacility]
         name = "W_" + r.wlbWell.split("-", 1)[1].replace("-", "")
-        well_list.append({"name": name, "x": x, "y": y,
+        well_list.append({"name": name, "label": r.wlbWell.split("-", 1)[1], "x": x, "y": y,
                           "template": r.wlbProductionFacility, "sodir_well": r.wlbWell})
 
     # candidate manifold sites: the real manifold, the two phase-2 templates, and the well centroid
     xs, ys = np.array([w_["x"] for w_ in well_list]), np.array([w_["y"] for w_ in well_list])
     man = [n for n in pos if "MANIFOLD" in n.upper()][0]
     sites = [
-        {"name": "M_ACT", "x": pos[man][0], "y": pos[man][1], "note": f"real manifold ({man})"},
-        {"name": "M_BF", "x": pos["16/4 SOLVEIG BF"][0], "y": pos["16/4 SOLVEIG BF"][1],
+        {"name": "M_ACT", "label": "$M_1$", "x": pos[man][0], "y": pos[man][1], "note": f"real manifold ({man})"},
+        {"name": "M_BF", "label": "$M_2$", "x": pos["16/4 SOLVEIG BF"][0], "y": pos["16/4 SOLVEIG BF"][1],
          "note": "at template BF (2 wells)"},
-        {"name": "M_BG", "x": pos["16/4 SOLVEIG BG"][0], "y": pos["16/4 SOLVEIG BG"][1],
+        {"name": "M_BG", "label": "$M_3$", "x": pos["16/4 SOLVEIG BG"][0], "y": pos["16/4 SOLVEIG BG"][1],
          "note": "at template BG (north, closest to host)"},
-        {"name": "M_CEN", "x": round(float(xs.mean()), 1), "y": round(float(ys.mean()), 1),
+        {"name": "M_CEN", "label": "$M_4$", "x": round(float(xs.mean()), 1), "y": round(float(ys.mean()), 1),
          "note": "centroid of the 6 producing wells (cf. Silva & Guedes Soares 2025 Eqs. 44-45)"},
     ]
     host = f[f.fclName.str.upper() == HOST].iloc[0]
@@ -78,7 +78,7 @@ def main():
                    "downloaded 2026-11-07; NLOD licence. Built by scripts/prepare_solveig.py."),
         "coordinates": f"local x = east, y = north [m] about {man}, ED50 lat/lon {lat0:.5f}, {lon0:.5f}",
         "water_depth_m": float(ref.fclWaterDepth),
-        "host": {"name": "EDVARD_GRIEG", "type": "fixed jacket platform", "x": pos[host.fclName][0],
+        "host": {"name": "EDVARD_GRIEG", "label": "Edvard Grieg", "type": "fixed jacket platform", "x": pos[host.fclName][0],
                  "y": pos[host.fclName][1]},
         "wells": [{k: v for k, v in w_.items()} for w_ in well_list],
         "manifold_sites": sites,

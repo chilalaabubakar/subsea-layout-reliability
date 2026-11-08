@@ -54,7 +54,8 @@ def tornado(df: pd.DataFrame, path: Path):
         ax.axvline(0, color=C_INK_2, lw=1)
         ax.set_xlabel(xlabel, color=C_INK_2)
         style(ax)
-    labels = [f"{p}  *" if p in changed else p for p in order]
+    nice = {p: p.replace("_", " ").capitalize() for p in order}
+    labels = [f"{nice[p]}  *" if p in changed else nice[p] for p in order]
     axes[0].set_yticks(y, labels)
     axes[0].set_title("NPV is driven by revenue inputs ...", loc="left", color=C_INK, fontsize=11)
     axes[1].set_title("... failure cost by reliability and logistics inputs", loc="left",
@@ -93,12 +94,12 @@ def switching_map(field, cfg, path: Path) -> pd.DataFrame:
     ax.annotate("base case", (j0 + 0.5, i0 + 0.08), ha="center", fontsize=8, color=C_INK_2)
     ax.set_xlim(0, len(n.columns))
     ax.set_ylim(0, len(n.index))
-    ax.set_xticks(np.arange(len(n.columns)) + 0.5, [f"x{c:g}" for c in n.columns])
-    ax.set_yticks(np.arange(len(n.index)) + 0.5, [f"x{r:g}" for r in n.index])
+    ax.set_xticks(np.arange(len(n.columns)) + 0.5, [f"\u00d7{c:g}" for c in n.columns])
+    ax.set_yticks(np.arange(len(n.index)) + 0.5, [f"\u00d7{r:g}" for r in n.index])
     b = cfg["vessels"]
-    ax.set_xlabel(f"Vessel mobilisation time (x base: {b['msv_mobilisation']['value']:g} d light, "
+    ax.set_xlabel(f"Vessel mobilisation time (\u00d7 base: {b['msv_mobilisation']['value']:g} d light, "
                   f"{b['hlv_mobilisation']['value']:g} d heavy vessel)", color=C_INK_2)
-    ax.set_ylabel(f"Manifold failure rate (x base {cfg['reliability']['manifold']['failure_rate_per_h']['value'] * 1e6:g} per 10^6 h)",
+    ax.set_ylabel(f"Manifold failure rate (\u00d7 base {cfg['reliability']['manifold']['failure_rate_per_h']['value'] * 1e6:g} per 10$^6$ h)",
                   color=C_INK_2)
     ax.set_title("Number of manifolds in the NPV-optimal layout\n"
                  "(cell text: manifolds, and NPV gain over the CAPEX-only layout in MUSD)",

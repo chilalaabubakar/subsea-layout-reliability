@@ -114,7 +114,7 @@ def main(cfg_path, hs_path):
         r = tab[(tab["mode"] == base_mode) & (tab.repair == kind)].iloc[0]
         lab = ("tree (light vessel)" if kind == "xmas_tree" else "manifold, flowline, umbilical (heavy vessel)")
         ax.plot(d.month, d.mean_wait_d, marker="o", ms=7, lw=2, color=col,
-                label=f"{lab}: {r['phases x T_POP [h]']} h lift(s), Hs <= {r['OP_WF [m]']:.2f} m")
+                label=f"{lab}: {r['phases x T_POP [h]']} h lift(s), $H_s$ \u2264 {r['OP_WF [m]']:.2f} m")
     ax.set_xticks(range(1, 13), ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
                                  "Nov", "Dec"])
     ax.set_ylabel("Mean wait for a weather window [days]", color=C_INK_2)

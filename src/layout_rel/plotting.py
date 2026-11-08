@@ -9,6 +9,11 @@ from matplotlib.lines import Line2D
 
 from .layout import Field
 
+
+def layout_text(field: Field, assignment: dict[str, str], sizes: dict[str, int]) -> str:
+    """Short figure label of a layout, e.g. "$M_1$ (4 slots) + $M_3$ (2 slots)"."""
+    return " + ".join(f"{field.label(s)} ({sizes[s]} slots)" for s in sorted(sizes))
+
 # Palette (validated categorical slots 1-3 + neutral ink). Plot styling only.
 C_WELL = "#2a78d6"
 C_MANIFOLD = "#eb6834"
@@ -47,7 +52,7 @@ def plot_layout(field: Field, assignment: dict[str, str] | None = None,
     for w in field.wells:
         x, y = _km(field.pos(w))
         ax.plot(x, y, "^", ms=11, color=C_WELL, zorder=3, **ring)
-        ax.annotate(w, (x, y), xytext=(7, -13), textcoords="offset points",
+        ax.annotate(field.label(w), (x, y), xytext=(7, -13), textcoords="offset points",
                     color=C_INK, fontsize=9)
     for s in field.sites:
         x, y = _km(field.pos(s))
@@ -55,13 +60,15 @@ def plot_layout(field: Field, assignment: dict[str, str] | None = None,
             ax.plot(x, y, "s", ms=12, color=C_MANIFOLD, zorder=3, **ring)
         elif show_candidates:
             ax.plot(x, y, "s", ms=11, mfc="none", mec=C_MUTED, mew=1.5, zorder=2)
-        label = f"{s} ({sizes[s]}-slot)" if sizes and s in sizes else s
+        label = (f"{field.label(s)}, {sizes[s]} slots" if sizes and s in sizes
+                 else field.label(s))
         ax.annotate(label, (x, y), xytext=(8, 7), textcoords="offset points",
                     color=C_INK if s in open_sites else C_INK_2, fontsize=9)
     hx, hy = _km(field.pos(field.host))
     ax.plot(hx, hy, "*", ms=18, color=C_HOST, zorder=3, **ring)
     htype = field.graph.nodes[field.host].get("host_type", "")
-    ax.annotate(f"{field.host} ({htype})" if htype else field.host, (hx, hy),
+    hname = field.label(field.host)
+    ax.annotate(f"{hname} ({htype})" if htype else hname, (hx, hy),
                 xytext=(10, -3), textcoords="offset points", color=C_INK, fontsize=9)
 
     handles = [

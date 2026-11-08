@@ -29,3 +29,13 @@ def test_solveig_field_from_sodir():
     f = load_field(field_path(load_config(CONFIG_DIR / "solveig_case.yaml")))
     assert len(f.wells) == 6 and len(f.sites) == 4
     assert 18_000 < f.length("M_ACT", f.host) < 19_500        # tie-back to Edvard Grieg ~18.7 km
+
+
+def test_display_labels():
+    from layout_rel.layout import load_field
+    from layout_rel.config import REPO_ROOT
+    f = load_field(REPO_ROOT / "config" / "field_solveig.yaml")
+    assert f.label("M_ACT") == "$M_1$" and f.label("M_CEN") == "$M_4$"
+    assert f.label("W_BA1") == "BA-1" and f.label("EDVARD_GRIEG") == "Edvard Grieg"
+    toy = load_field(REPO_ROOT / "config" / "field_toy.yaml")
+    assert toy.label("M2") == "$M_2$"
