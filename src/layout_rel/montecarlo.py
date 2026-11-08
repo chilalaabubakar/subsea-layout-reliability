@@ -163,7 +163,7 @@ def sample_scenarios(field: Field, cfg: dict, n: int | None = None,
         for s in field.sites:
             L = field.length(s, field.host)
             rf, lf = money("tieback_flowline", events(rate(cfg, "tieback_flowline", length=L)))
-            ru, lu = money("tieback_umbilical", events(rate(cfg, "tieback_umbilical")))
+            ru, lu = money("tieback_umbilical", events(rate(cfg, "tieback_umbilical", length=L)))
             site[s], tie_lost[s] = rf + ru, lf + lu
             lam = {k: rate(cfg, "manifold", slots=k) for k in sizes}
             t = rng.uniform(0.0, life, rng.poisson(lam[sizes[-1]] * life))

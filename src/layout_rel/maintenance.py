@@ -133,7 +133,7 @@ def failure_cost_coefficients(field: Field, cfg: dict, repair_weight: float = 1.
     for s in field.sites:
         L = field.length(s, field.host)
         site[s] = (cost("tieback_flowline", 0.0, length=L)[0]
-                   + cost("tieback_umbilical", 0.0)[0])
+                   + cost("tieback_umbilical", 0.0, length=L)[0])
         for k in manifold_sizes(cfg):
             site_size[s, k] = cost("manifold", 0.0, slots=k)[0]
     for w in field.wells:
@@ -141,9 +141,9 @@ def failure_cost_coefficients(field: Field, cfg: dict, repair_weight: float = 1.
         for s in field.sites:
             Lw, Ls = field.length(w, s), field.length(s, field.host)
             connect[w, s] = (sum(cost("infield_flowline", q, length=Lw))
-                             + sum(cost("infield_umbilical", q))
+                             + sum(cost("infield_umbilical", q, length=Lw))
                              + cost("tieback_flowline", q, length=Ls)[1]
-                             + cost("tieback_umbilical", q)[1])
+                             + cost("tieback_umbilical", q, length=Ls)[1])
             for k in manifold_sizes(cfg):
                 connect_size[w, s, k] = cost("manifold", q, slots=k)[1]
     return FailureCostCoefficients(constant, site, site_size, connect, connect_size)

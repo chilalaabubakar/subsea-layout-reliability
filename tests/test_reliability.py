@@ -28,3 +28,24 @@ def test_manifold_rate_grows_with_slots(cfg):
     ref = param(cfg, "reliability.manifold.failure_rate_per_h")
     assert math.isclose(rate(cfg, "manifold", slots=4), ref)
     assert rate(cfg, "manifold", slots=2) < ref < rate(cfg, "manifold", slots=6)
+
+
+def test_umbilical_rate_is_per_unit_not_per_km(cfg):
+    """OREDA gives the umbilical rate per installed unit: a longer tie-back keeps the same rate."""
+    r1, r2 = rate(cfg, "tieback_umbilical", 1000.0), rate(cfg, "tieback_umbilical", 15000.0)
+    assert r1 == r2 > 0
+    assert math.isclose(r1 * YEAR, 0.0374, rel_tol=1e-2)   # 4.27 per 1e6 h
+
+
+def test_per_km_umbilical_rate_scales_and_needs_length(cfg):
+    import copy
+
+    import pytest
+
+    c = copy.deepcopy(cfg)
+    node = c["reliability"]["tieback_umbilical"]
+    del node["failure_rate_per_unit"]
+    node["failure_rate_per_km"] = {"value": 2.0e-3, "unit": "1/(km*yr)", "source": "test"}
+    assert math.isclose(rate(c, "tieback_umbilical", 15000.0) / rate(c, "tieback_umbilical", 1000.0), 15.0)
+    with pytest.raises(ValueError):
+        rate(c, "tieback_umbilical")

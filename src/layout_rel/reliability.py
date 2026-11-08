@@ -9,6 +9,7 @@ Constant failure rates (exponential model, MTTF = 1/lambda). For a given layout
     manifold                      one per open site  stops all its wells
     tie-back flowline             one per open site  stops all its wells    rate per km x length
     tie-back umbilical            one per open site  stops all its wells    rate per unit
+                                                                         (not scaled by length)
 
 This is the key link between reliability and layout: grouping wells on one
 manifold makes manifold and tie-back failures hit more wells at once.
@@ -42,14 +43,22 @@ def manifold_rate(cfg: dict, slots: int) -> float:
     return ref * ((1 - f) + f * slots / k_ref)
 
 
-def rate(cfg: dict, component: str, length: float = 0.0, slots: int | None = None) -> float:
-    """Failure rate [1/s] of one component; ``length`` [m] for lines, ``slots`` for manifolds."""
+def rate(cfg: dict, component: str, length: float | None = None, slots: int | None = None) -> float:
+    """Failure rate [1/s] of one component; ``length`` [m] for lines, ``slots`` for manifolds.
+
+    A line given ``failure_rate_per_km`` in the config scales with its route length; one
+    given ``failure_rate_per_unit`` (the umbilicals: OREDA reports umbilical failures per
+    installed unit, not per km) has the same rate whatever its length. Callers pass the
+    length of every line, so either form can be set in the config.
+    """
     if component == "manifold":
         if slots is None:
             raise ValueError("manifold rate needs the slot count")
         return manifold_rate(cfg, slots)
     node = cfg["reliability"][component]
     if "failure_rate_per_km" in node:
+        if length is None:
+            raise ValueError(f"{component} has a per-km failure rate and needs the route length")
         return param(cfg, f"reliability.{component}.failure_rate_per_km") * length
     if "failure_rate_per_unit" in node:
         return param(cfg, f"reliability.{component}.failure_rate_per_unit")
@@ -75,7 +84,7 @@ def well_modes(field: Field, cfg: dict, well: str, site: str) -> list[FailureMod
         FailureMode(f"infield flowline {well}-{site}", REPAIR_KIND["infield_flowline"],
                     rate(cfg, "infield_flowline", L), (well,)),
         FailureMode(f"infield umbilical {well}-{site}", REPAIR_KIND["infield_umbilical"],
-                    rate(cfg, "infield_umbilical"), (well,)),
+                    rate(cfg, "infield_umbilical", L), (well,)),
     ]
 
 
@@ -89,7 +98,7 @@ def site_modes(field: Field, cfg: dict, site: str, wells: tuple[str, ...],
         FailureMode(f"tieback flowline {site}", REPAIR_KIND["tieback_flowline"],
                     rate(cfg, "tieback_flowline", L), wells),
         FailureMode(f"tieback umbilical {site}", REPAIR_KIND["tieback_umbilical"],
-                    rate(cfg, "tieback_umbilical"), wells),
+                    rate(cfg, "tieback_umbilical", L), wells),
     ]
 
 

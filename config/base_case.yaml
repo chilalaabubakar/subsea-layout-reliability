@@ -305,6 +305,15 @@ risk:
     unit: "-"
     source: "Fixed seed for the in-MILP scenarios (different from montecarlo.seed, so the out-of-sample check is independent)."
 
+# What-if for the umbilical rate (scripts/umbilical_length_check.py). The model applies
+# reliability.tieback_umbilical.failure_rate_per_unit per installed umbilical, whatever its
+# length. This check turns it into a per-km rate by assuming the OREDA units had a given length.
+umbilical_length_check:
+  ref_lengths:
+    value: [17.7, 5.0, 2.0]
+    unit: km (assumed length of the OREDA umbilical units; list, converted in the script)
+    source: "Assumption for a what-if only: OREDA 2002 via Thies, Smith & Johanning (2012) Sec. 5.2.1 gives 9 umbilical units with 2 failures and no unit length. 17.7 km = Solveig base tie-back (M_CEN), so the base layout keeps its rate; 5 and 2 km test shorter units (higher per-km rate)."
+
 # Sensitivity ranges (step 8). Each item changes the listed `targets` (dotted keys of
 # raw YAML values) to `low` / `high`: mode "scale" multiplies the base value, mode "set"
 # replaces it (one number for all targets, or one per target).
