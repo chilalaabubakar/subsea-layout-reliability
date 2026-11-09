@@ -120,7 +120,7 @@ def main(cfg_path, hs_path):
     ax.set_xticks(range(1, 13), ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
                                  "Nov", "Dec"])
     ax.set_ylabel("Mean wait for a weather window [days]", color=C_INK_2)
-    ax.set_title(f"Waiting on weather at Solveig by month of call-out (NORA3 {years}, DNV-ST-N001)",
+    ax.set_title(f"Waiting on weather at Solveig by month the vessel is ready (NORA3 {years}, DNV-ST-N001)",
                  loc="left", color=C_INK, fontsize=11)
     ax.legend(frameon=False, labelcolor=C_INK_2, fontsize=9)
     ax.grid(True, color=C_GRID, lw=0.8)
@@ -134,8 +134,8 @@ def main(cfg_path, hs_path):
     base = Path(cfg_path).name
     for name, mode, season, note in (
             ("solveig_weather.yaml", base_mode, "year", "North Sea case with year-round mean waiting on weather (base)."),
-            ("solveig_weather_winter.yaml", base_mode, "winter", "All repairs called out in winter (Oct-Mar)."),
-            ("solveig_weather_summer.yaml", base_mode, "summer", "All repairs called out in summer (Apr-Sep)."),
+            ("solveig_weather_winter.yaml", base_mode, "winter", "Bound: every repair vessel is ready in winter (Oct-Mar)."),
+            ("solveig_weather_summer.yaml", base_mode, "summer", "Bound: every repair vessel is ready in summer (Apr-Sep)."),
             ("solveig_weather_whole.yaml", "whole", "year", "Upper bound: whole active repair is weather-critical.")):
         p = write_case(name, base, {k: mean[mode, season, k] for k in KINDS}, mode, season, years, note)
         print(f"wrote {p.relative_to(REPO_ROOT)}")

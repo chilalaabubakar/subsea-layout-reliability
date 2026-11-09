@@ -69,7 +69,7 @@ def fig5_weather(out):
     ax.set_xticks(range(1, 13), list("JFMAMJJASOND"))
     ax.set_xlim(0.5, 12.5)
     ax.set_ylim(0, 42)
-    ax.set_xlabel("Month of call-out")
+    ax.set_xlabel("Month in which the vessel is ready")
     ax.set_ylabel("Mean wait for a weather window (d)")
     ax.legend(loc="upper center", fontsize=12, bbox_to_anchor=(0.5, 0.93))
     finalize_figure(fig, out)

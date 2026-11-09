@@ -80,3 +80,19 @@ def test_unreliable_manifolds_split_the_field(field, cfg):
     cfg["vessels"]["hlv_mobilisation"]["value"] = 90.0
     sol = check_npv(field, cfg)
     assert len(sol.open_sites) >= 2
+
+
+# ---------------------------------------------------------------- Solveig (4 sites: 4^6 = 4,096 assignments)
+def _solveig():
+    from layout_rel.config import REPO_ROOT, field_path, load_config
+    from layout_rel.layout import load_field
+    cfg = load_config(REPO_ROOT / "config" / "solveig_weather.yaml")
+    return load_field(field_path(cfg), param(cfg, "routing.length_factor")), cfg
+
+
+def test_solveig_milps_match_brute_force():
+    """Cases 1 and 2 of the North Sea case return the optimum of full enumeration."""
+    field, cfg = _solveig()
+    assert len(field.sites) ** len(field.wells) == 4096
+    check(field, cfg)
+    check_npv(field, cfg)
