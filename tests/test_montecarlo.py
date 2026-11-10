@@ -125,3 +125,16 @@ def test_enumeration_on_scenarios_matches_cvar_milp(field, cfg):
     for w in (0.4, 1.0):
         sol = optimize_npv(field, cfg, risk_weight=w, scenarios=sc)
         assert math.isclose(sol.info["cost_pv"], tab.objective(w).min(), rel_tol=1e-6)
+
+
+def test_simulation_and_expected_value_agree_with_deferred_production(field, cfg):
+    import copy
+    c = copy.deepcopy(cfg)
+    c["production"]["deferred_fraction"]["value"] = 0.5
+    ev, base = ev_failure_pv(field, c, ONE), ev_failure_pv(field, cfg, ONE)
+    assert ev < base                                                # deferral lowers the failure cost
+    mc = simulate_layout(field, c, ONE, n=5000).total_pv
+    assert abs(mc.mean() / ev - 1) < 0.05 and mc.mean() < ev * 1.01
+    sc = sample_scenarios(field, c, n=3000)
+    x = np.array([scenario_cost(s, ONE, default_sizes(c, ONE)) for s in sc])
+    assert abs(x.mean() / ev - 1) < 0.05

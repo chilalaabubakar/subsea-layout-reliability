@@ -36,11 +36,16 @@ class FailureMode:
 
 
 def manifold_rate(cfg: dict, slots: int) -> float:
-    """Failure rate [1/s] of a manifold with ``slots`` slots."""
+    """Rate [1/s] of failures of a ``slots``-slot manifold that stop production.
+
+    ``critical_fraction`` is the share of the recorded failures that stop production and
+    need an immediate repair (1 in the base case); the others are taken to be repaired in
+    planned campaigns and are not counted.
+    """
     ref = param(cfg, "reliability.manifold.failure_rate_per_h")
     f = param(cfg, "reliability.manifold.slot_fraction")
     k_ref = param(cfg, "reliability.manifold.reference_slots")
-    return ref * ((1 - f) + f * slots / k_ref)
+    return ref * param(cfg, "reliability.manifold.critical_fraction") * ((1 - f) + f * slots / k_ref)
 
 
 def rate(cfg: dict, component: str, length: float | None = None, slots: int | None = None) -> float:

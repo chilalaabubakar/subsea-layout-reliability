@@ -43,6 +43,7 @@ python scripts/run_case2.py         # cases 2-3: NPV-optimal layout incl. failur
 python scripts/run_step7.py         # step 7: Monte Carlo check of the EV model, CVaR layouts (~1 min)
 python scripts/run_saa.py           # step 7: how much the CVaR layout depends on the scenario sample (~15 min)
 python scripts/run_step8.py         # step 8: sensitivity (add --risk 0.5 for the risk-averse study, ~6 min)
+python scripts/run_assumptions.py   # step 8: deferred production and critical-only manifold failures as whole cases (~10 min)
 pytest                           # run the tests
 ```
 

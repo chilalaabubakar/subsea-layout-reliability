@@ -41,6 +41,7 @@ NICE = {
     "tree_failure_rate": "Tree failure rate", "vessel_day_rates": "Vessel day rates",
     "repair_time": "Active repair time", "field_life": "Field life",
     "weather_allowance": "Weather allowance", "slot_fraction": "Per-slot share of manifold rate",
+    "manifold_critical_only": "Manifold failures: critical only", "deferred_production": "Deferred production",
 }
 
 

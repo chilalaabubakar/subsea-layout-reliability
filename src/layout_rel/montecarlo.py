@@ -35,7 +35,8 @@ import numpy as np
 import pandas as pd
 
 from .config import REPO_ROOT, param, param_raw
-from .economics import discount_factors, manifold_sizes, production_profile, smallest_size
+from .economics import (discount_factors, lost_production_weights, manifold_sizes, production_profile,
+                        smallest_size)
 from .layout import Field
 from .maintenance import FailureCostCoefficients, Repair, repair, well_rate
 from .reliability import REPAIR_KIND, failure_modes, rate
@@ -125,10 +126,12 @@ def summary(x: np.ndarray, alpha: float) -> dict[str, float]:
             f"cvar{int(alpha * 100)}": cvar(x, alpha), "max": float(x.max())}
 
 
-def _year_tables(cfg: dict) -> tuple[np.ndarray, np.ndarray, float]:
+def _year_tables(cfg: dict) -> tuple[np.ndarray, np.ndarray, float, np.ndarray]:
+    """Discount factors, production profile, field life [s], and the value weights of lost
+    production (= discount factors unless part of the shut-in volume is deferred)."""
     df = np.array(discount_factors(cfg))
     g = np.array(production_profile(cfg))
-    return df, g, len(df) * YEAR
+    return df, g, len(df) * YEAR, np.array(lost_production_weights(cfg))
 
 
 def _lost_pv_of_intervals(intervals: list[tuple[float, float]], q: float, price: float,
@@ -161,7 +164,7 @@ def simulate_layout(field: Field, cfg: dict, assignment: dict[str, str],
     """Simulate ``n`` field lives of a fixed layout (with outage overlap)."""
     n = int(n or param(cfg, "montecarlo.n_sims"))
     rng = np.random.default_rng(param(cfg, "montecarlo.seed") if seed is None else seed)
-    df, g, life = _year_tables(cfg)
+    df, g, life, lw = _year_tables(cfg)
     price = param(cfg, "production.oil_price")
     modes = [m for m in failure_modes(field, cfg, assignment, sizes) if m.rate > 0]
     reps = [repair(cfg, m.repair_kind) for m in modes]
@@ -190,7 +193,7 @@ def simulate_layout(field: Field, cfg: dict, assignment: dict[str, str],
                 for w in m.wells:
                     outages[w].append((t, e))
         for w, iv in outages.items():
-            pv, d = _lost_pv_of_intervals(iv, q[w], price, df, g, life)
+            pv, d = _lost_pv_of_intervals(iv, q[w], price, lw, g, life)
             lost_pv[i] += pv
             downtime[i] += d
     return SimulationResult(repair_pv, lost_pv, downtime, failures)
@@ -210,7 +213,7 @@ def sample_scenarios(field: Field, cfg: dict, n: int | None = None,
     """
     n = int(n or param(cfg, "risk.n_scenarios"))
     rng = np.random.default_rng(param(cfg, "risk.seed") if seed is None else seed)
-    df, g, life = _year_tables(cfg)
+    df, g, life, lw = _year_tables(cfg)
     price = param(cfg, "production.oil_price")
     sizes = manifold_sizes(cfg)
 
@@ -227,9 +230,9 @@ def sample_scenarios(field: Field, cfg: dict, n: int | None = None,
         r = reps[comp]
         years = np.minimum((t // YEAR).astype(int), len(df) - 1)
         if ww is None:
-            return r.cost * df[years].sum(), r.downtime * price * (df[years] * g[years]).sum()
+            return r.cost * df[years].sum(), r.downtime * price * (lw[years] * g[years]).sum()
         down = ww.downtime(REPAIR_KIND[comp], r, t, offset)
-        return (r.cost_at(down) * df[years]).sum(), price * (down * df[years] * g[years]).sum()
+        return (r.cost_at(down) * df[years]).sum(), price * (down * lw[years] * g[years]).sum()
 
     out = []
     for _ in range(n):

@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .config import param
+from .config import param, param_raw
 from .layout import Field
 
 
@@ -119,7 +119,9 @@ def capex_breakdown(field: Field, cfg: dict, assignment: dict[str, str],
 #   A_rep  = sum_t DF_t            (failures happen at a constant rate)
 #   A_prod = sum_t DF_t * g_t      (g_t = production at t / plateau; loss scales with rate)
 #
-# Lost production is treated as lost, not deferred (conservative).
+# Base case: lost production is lost, not deferred (conservative). With
+# `production.deferred_fraction` > 0 that share of the shut-in volume is produced later
+# and credited at the discount factor of its recovery year (`lost_production_weights`).
 
 def production_profile(cfg: dict) -> list[float]:
     """g_t = production in year t relative to plateau, t = 1..N."""
@@ -135,17 +137,39 @@ def discount_factors(cfg: dict) -> list[float]:
     return [(1 + r) ** -t for t in range(1, len(production_profile(cfg)) + 1)]
 
 
+def lost_production_weights(cfg: dict) -> list[float]:
+    """Present-value weight of production lost in year t (t = 1..N).
+
+    Without deferral this is the discount factor DF_t. If a share ``delta``
+    (``production.deferred_fraction``) of the shut-in volume is produced later, it is
+    credited at the discount factor of its recovery: the last year of field life
+    (``production.deferral_delay`` null, the deferred volume extends the tail of the decline)
+    or ``deferral_delay`` years after the outage. Weight = DF_t - delta * DF_recovery.
+    """
+    df = discount_factors(cfg)
+    delta = param(cfg, "production.deferred_fraction")
+    if not delta:
+        return df
+    delay = param_raw(cfg, "production.deferral_delay")          # years, or None
+    r = param(cfg, "economics.discount_rate")
+    recovery = [df[-1]] * len(df) if delay is None else [f * (1 + r) ** -delay for f in df]
+    return [f - delta * c for f, c in zip(df, recovery)]
+
+
 def annuity_factors(cfg: dict) -> tuple[float, float]:
-    """(A_rep, A_prod): discounted sum of years, and of production-weighted years."""
+    """(A_rep, A_prod) for failure costs: discounted sum of years, and of production-weighted
+    years. A_prod uses ``lost_production_weights``, so it includes the credit for deferred
+    production (none in the base case)."""
     df, g = discount_factors(cfg), production_profile(cfg)
-    return sum(df), sum(f * x for f, x in zip(df, g))
+    return sum(df), sum(f * x for f, x in zip(lost_production_weights(cfg), g))
 
 
 def revenue_pv(field: Field, cfg: dict) -> float:
     """PV of revenue with no downtime [USD] (same for every layout)."""
     from .units import YEAR
     q = sum(param(cfg, "production.well_rate") for _ in field.wells)
-    return q * YEAR * param(cfg, "production.oil_price") * annuity_factors(cfg)[1]
+    a_prod = sum(f * x for f, x in zip(discount_factors(cfg), production_profile(cfg)))
+    return q * YEAR * param(cfg, "production.oil_price") * a_prod
 
 
 def npv_breakdown(field: Field, cfg: dict, assignment: dict[str, str],

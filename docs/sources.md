@@ -178,6 +178,21 @@ https://doi.org/10.1038/s41598-024-73410-y (open access)
 - Fuzzy interval [0.1185e-4, 0.6734e-4] per hour (lambda-cut = 0), i.e. 0.10-0.59 per year. Useful
   range for sensitivity.
 - Includes pigging module and insulation failures, not all of which stop production.
+- Table 5 codes with the Table 6 means (10^-6/h). Manifold module: X1 chemical injection coupler 0.09,
+  X2 connector 0.32, X3 hydraulic coupler 0.03, X4 insulation device 5.67, X5 hard pipe 1.62,
+  X6 protective structure 0.90, X7 support structure 1.03, X8 production medium isolation valve 3.31,
+  X9 working medium isolation valve 0.20, X10 check valve 0.02, X11 block valve 4.21, X12 control valve 10.64.
+  Pigging module: X13 connector 1.28, X14 subsea pig 4.51, X15 hard pipe 0.86, X16 protection structure 1.76,
+  X17 support structure 2.47, X18 production medium isolation valve 1.25, X19 working medium isolation
+  valve 0.35, X20 check valve 0.02. Base: X21 guide module 0.07, X22 base pile 0.42, X23 protection structure 0.41.
+- **Our classification, critical share** (`reliability.manifold.critical_fraction`, sensitivity value):
+  failures in the production path of the manifold module = X1-X3, X5, X8-X12 = 20.44 of 41.44 -> **0.493**.
+  Insulation (X4), structures (X6, X7), the pigging module (X13-X20, 12.50) and the base (X21-X23) are taken
+  not to interrupt flow; they would be repaired in a planned campaign. Of the 20.44, couplers, connector and
+  valves (18.82) repeat for every slot -> per-slot share **0.921** for the critical-only case.
+  Caveats: the paper does not split the rates by OREDA severity class, valve failures that do not interrupt
+  flow (fail to close, internal leak) are still counted, so 0.493 is an upper estimate; and a leak from a
+  pigging-module connector, pipe or valve (3.76) would also force a shutdown (share 0.58 if counted).
 
 ## Østebø, Kallestad & Grytdal (2001): qualitative only
 
@@ -339,7 +354,7 @@ manifold rate is probably still high relative to the tree. Test with the sensiti
 
 ## Still needed
 
-- Failure rates: a critical-only manifold rate would help; a per-km umbilical rate (current one is per unit, small sample). Sources: published papers/theses quoting OREDA (2009 or later editions); PARLOC
+- Failure rates: a critical-only manifold rate from OREDA itself would help (the 0.493 above is our own component classification); a per-km umbilical rate (current one is per unit, small sample). Sources: published papers/theses quoting OREDA (2009 or later editions); PARLOC
   (UK pipeline and riser loss of containment) for flowlines, see Bai p. 300.
 - Repair durations and vessel waiting/mobilization times.
 - Common cost year: escalate Kaiser (2014) and Bai (2007/2009) to one year.

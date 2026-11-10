@@ -116,6 +116,14 @@ production:
     value: 70.0
     unit: USD/bbl
     source: "Own assumption (CLAUDE.md), same as Silva & Guedes Soares (2025) Table 8 (70 USD/bbl). Tested in sensitivity."
+  deferred_fraction:
+    value: 0.0
+    unit: fraction of the volume shut in by a failure that is produced later
+    source: "Base: 0, all shut-in production is lost (conservative; Silva & Guedes Soares 2025 also count it as lost). In a reservoir-constrained field shut-in volumes are produced later, so the sensitivity analysis goes up to 1."
+  deferral_delay:
+    value: null
+    unit: "yr (from the outage to the recovery of its deferred volume; null = in the last year of field life)"
+    source: "Assumption: deferred volumes extend the tail of the decline, so they are valued in the last year of field life. A number of years gives an earlier recovery (wells held back by a plateau limit); scripts/run_assumptions.py tests 1 year as a bound."
 
 # Failure rates (constant, exponential model). See docs/sources.md "Failure-rate summary".
 # `affects` is decided by the layout: tree and infield line -> 1 well; manifold, tie-back
@@ -135,6 +143,10 @@ reliability:
       value: 4
       unit: slots
       source: "Assumption: the OREDA average manifold is taken as a 4-slot cluster manifold (the base unit in Bai & Bai 2010 p. 176 and in Silva & Guedes Soares 2025 Sec. 4.3)."
+    critical_fraction:
+      value: 1.0
+      unit: fraction of the recorded manifold failures that stop production and need an immediate repair
+      source: "Base: 1, every recorded failure stops production (Silva & Guedes Soares 2025 use the full OREDA rate in the same way). Tested in the sensitivity analysis with 0.493 = share of the Liu et al. (2024) Sci. Rep. 14:22873 Table 6 rate that sits in the production path of the manifold module (our classification, see sensitivity.manifold_critical_only)."
     slot_fraction:
       value: 0.493
       unit: fraction of the reference rate that scales with slot count
@@ -325,6 +337,20 @@ risk:
     unit: "-"
     source: "Fixed seed for the reference sample (independent of risk.seed and montecarlo.seed)."
 
+# Two modelling assumptions tested as whole cases (scripts/run_assumptions.py): shut-in
+# production that is deferred, not lost, and manifold failures that do not stop production.
+assumption_checks:
+  cases:
+    value:
+      base: {}
+      deferred_half: {production.deferred_fraction: 0.5}
+      deferred_all: {production.deferred_fraction: 1.0}
+      deferred_all_after_one_year: {production.deferred_fraction: 1.0, production.deferral_delay: 1.0}
+      critical_only: {reliability.manifold.critical_fraction: 0.493, reliability.manifold.slot_fraction: 0.921}
+      critical_only_deferred_all: {reliability.manifold.critical_fraction: 0.493, reliability.manifold.slot_fraction: 0.921, production.deferred_fraction: 1.0}
+    unit: "- (case name -> {dotted config key: value}; keys not listed keep their base value)"
+    source: "Deferred share 0.5 and 1 with recovery in the last year of field life, and 1 with recovery one year after the outage (bound): own assumptions. Critical-only manifold failures: values and classification as in sensitivity.manifold_critical_only (Liu et al. 2024 Table 6)."
+
 # What-if for the umbilical rate (scripts/umbilical_length_check.py). The model applies
 # reliability.tieback_umbilical.failure_rate_per_unit per installed umbilical, whatever its
 # length. This check turns it into a per-km rate by assuming the OREDA units had a given length.
@@ -386,6 +412,14 @@ sensitivity:
     value: {targets: [reliability.manifold.slot_fraction], mode: set, low: 0.0, high: 1.0}
     unit: fraction
     source: "Model bounds: 0 = rate independent of slots (Silva & Guedes Soares 2025), 1 = rate proportional to slots."
+  manifold_critical_only:
+    value: {targets: [reliability.manifold.critical_fraction, reliability.manifold.slot_fraction], mode: set, low: [0.493, 0.921], high: [1.0, 0.493]}
+    unit: fraction
+    source: "Low: only failures in the production path of the manifold module count. Liu et al. (2024) Table 6 means (Table 5 codes), our classification: couplers and connector X1-X3 (0.44), hard pipe X5 (1.62) and valves X8-X12 (18.38) = 20.44 of 41.44 per 10^6 h -> critical share 0.493. Insulation X4, structures X6-X7, pigging module X13-X20 and base X21-X23 do not interrupt flow. Of the 20.44, couplers, connector and valves (18.82) repeat for every slot -> per-slot share 0.921. Valve failures that do not interrupt flow are still counted, so 0.493 is an upper estimate. High = base values (every failure stops production)."
+  deferred_production:
+    value: {targets: [production.deferred_fraction], mode: set, low: 0.0, high: 1.0}
+    unit: fraction
+    source: "Bounds: 0 = all shut-in production is lost (base); 1 = all of it is produced in the last year of field life."
   line_capex:
     value: {targets: [capex.infield_flowline, capex.infield_umbilical, capex.tieback_flowline, capex.tieback_umbilical], mode: set, low: 621.0, high: 3728.0}
     unit: USD/m

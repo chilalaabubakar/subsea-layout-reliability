@@ -49,3 +49,13 @@ def test_per_km_umbilical_rate_scales_and_needs_length(cfg):
     assert math.isclose(rate(c, "tieback_umbilical", 15000.0) / rate(c, "tieback_umbilical", 1000.0), 15.0)
     with pytest.raises(ValueError):
         rate(c, "tieback_umbilical")
+
+
+def test_critical_fraction_scales_the_manifold_rate(cfg):
+    import copy
+    c = copy.deepcopy(cfg)
+    assert rate(cfg, "manifold", slots=6) > 0
+    c["reliability"]["manifold"]["critical_fraction"]["value"] = 0.5
+    for k in (2, 4, 6, 8):
+        assert math.isclose(rate(c, "manifold", slots=k), 0.5 * rate(cfg, "manifold", slots=k))
+    assert rate(c, "xmas_tree") == rate(cfg, "xmas_tree")           # only manifolds are affected
