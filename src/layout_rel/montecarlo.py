@@ -18,20 +18,73 @@ discounted with (1 + r)^-y and its lost production uses the production level g_y
 so the MC mean and the EV value differ only by overlap and end-of-life effects
 plus sampling noise. Vessel queuing (two repairs waiting for one vessel) is not
 modelled in either.
+
+Weather wait per failure (``WeatherWaits``): if the config names an hourly wait file
+(``montecarlo.weather_wait_file``, written by scripts/weather_windows.py), each failure
+waits as long as the hindcast says for the hour its vessel is ready (failure time +
+mobilisation), so winter failures wait longer than summer ones. Without the file every
+failure uses the mean wait (``maintenance.<kind>.weather_wait_days``), as the EV model does.
 """
 from __future__ import annotations
 
+import functools
 import math
 from dataclasses import dataclass
 
 import numpy as np
+import pandas as pd
 
-from .config import param
+from .config import REPO_ROOT, param, param_raw
 from .economics import discount_factors, manifold_sizes, production_profile, smallest_size
 from .layout import Field
-from .maintenance import FailureCostCoefficients, repair, well_rate
+from .maintenance import FailureCostCoefficients, Repair, repair, well_rate
 from .reliability import REPAIR_KIND, failure_modes, rate
-from .units import YEAR
+from .units import HOUR, YEAR
+
+
+@functools.lru_cache(maxsize=4)
+def _hourly_wait_table(path: str) -> tuple[dict[str, np.ndarray], np.ndarray]:
+    """({repair kind: wait [h] per hindcast hour}, indices of each 1 January 00:00)."""
+    t = pd.read_csv(path, parse_dates=["time"])
+    waits = {c[:-2]: t[c].to_numpy(float) for c in t.columns if c.endswith("_h")}
+    starts = np.flatnonzero((t.time.dt.month == 1) & (t.time.dt.day == 1) & (t.time.dt.hour == 0))
+    return waits, starts
+
+
+@dataclass
+class WeatherWaits:
+    """Weather wait of a repair by the hindcast hour at which its vessel is ready.
+
+    The hindcast is used as a loop: a simulated field life starts on 1 January of a
+    randomly drawn hindcast year (``draw_offsets``) and runs through the record, back to
+    its first year after the last. Each wait series is scaled so that its mean equals the
+    config's mean wait for that repair kind; the expected-value model and the simulation
+    then use the same mean, also in sensitivity runs that scale the wait.
+    """
+    wait: dict[str, np.ndarray]    # repair kind -> wait [s] for each hindcast hour
+    year_start: np.ndarray         # index of 1 January 00:00 of each hindcast year
+
+    def draw_offsets(self, rng: np.random.Generator, n: int | None = None):
+        return rng.choice(self.year_start, size=n)
+
+    def downtime(self, kind: str, r: Repair, times: np.ndarray, offset: int) -> np.ndarray:
+        """Downtime [s] of failures at field times ``times`` [s]: mobilisation + wait + repair."""
+        w = self.wait[kind]
+        ready = ((np.asarray(times) + r.mobilisation) // HOUR).astype(np.int64)
+        return r.mobilisation + w[(offset + ready) % len(w)] + r.active
+
+
+def weather_waits(cfg: dict) -> WeatherWaits | None:
+    """Hourly waits named by ``montecarlo.weather_wait_file``, or None (mean wait for all)."""
+    path = param_raw(cfg, "montecarlo.weather_wait_file")
+    if not path:
+        return None
+    hours, starts = _hourly_wait_table(str(REPO_ROOT / path))
+    wait = {}
+    for kind, h in hours.items():
+        mean = param(cfg, f"maintenance.{kind}.weather_wait_days")        # s
+        wait[kind] = h * (mean / h.mean()) if h.mean() > 0 else np.zeros_like(h)
+    return WeatherWaits(wait, starts)
 
 
 @dataclass
@@ -51,6 +104,17 @@ def cvar(x: np.ndarray, alpha: float) -> float:
     x = np.sort(np.asarray(x))
     k = int(math.ceil(alpha * len(x)))
     return float(x[k:].mean()) if k < len(x) else float(x[-1])
+
+
+def cvar_lp(x: np.ndarray, alpha: float) -> float:
+    """CVaR exactly as the MILP's linear form defines it on a sample (Rockafellar & Uryasev):
+    min over eta of eta + mean(max(x - eta, 0)) / (1 - alpha). Equal to ``cvar`` when
+    (1 - alpha) * len(x) is a whole number; otherwise the last tail scenario counts in part."""
+    xs = np.sort(np.asarray(x))[::-1]
+    k = len(xs) * (1 - alpha)
+    whole = int(math.floor(k + 1e-9))
+    tail = xs[:whole].sum() + ((k - whole) * xs[whole] if whole < len(xs) and k - whole > 1e-9 else 0.0)
+    return float(tail / k)
 
 
 def summary(x: np.ndarray, alpha: float) -> dict[str, float]:
@@ -106,17 +170,25 @@ def simulate_layout(field: Field, cfg: dict, assignment: dict[str, str],
     repair_pv, lost_pv = np.zeros(n), np.zeros(n)
     downtime, failures = np.zeros(n), np.zeros(n)
     counts = rng.poisson([m.rate * life for m in modes], size=(n, len(modes)))
+    ww = weather_waits(cfg)
+    offsets = ww.draw_offsets(rng, n) if ww else None        # hindcast year in which each life starts
     for i in range(n):
         outages: dict[str, list[tuple[float, float]]] = {w: [] for w in field.wells}
         for j in np.nonzero(counts[i])[0]:
             m, r = modes[j], reps[j]
             times = rng.uniform(0.0, life, counts[i, j])     # Poisson: uniform given count
             years = np.minimum((times // YEAR).astype(int), len(df) - 1)
-            repair_pv[i] += r.cost * df[years].sum()
+            if ww is None:                                   # every failure: mean weather wait
+                repair_pv[i] += r.cost * df[years].sum()
+                ends = times + r.downtime
+            else:                                            # wait of the hour the vessel is ready
+                down = ww.downtime(m.repair_kind, r, times, offsets[i])
+                repair_pv[i] += (r.cost_at(down) * df[years]).sum()
+                ends = times + down
             failures[i] += len(times)
-            for t in times:
+            for t, e in zip(times.tolist(), ends.tolist()):
                 for w in m.wells:
-                    outages[w].append((t, t + r.downtime))
+                    outages[w].append((t, e))
         for w, iv in outages.items():
             pv, d = _lost_pv_of_intervals(iv, q[w], price, df, g, life)
             lost_pv[i] += pv
@@ -142,18 +214,27 @@ def sample_scenarios(field: Field, cfg: dict, n: int | None = None,
     price = param(cfg, "production.oil_price")
     sizes = manifold_sizes(cfg)
 
-    def events(lam: float) -> np.ndarray:
-        """Year indices of failures in one field life."""
-        t = rng.uniform(0.0, life, rng.poisson(lam * life))
-        return np.minimum((t // YEAR).astype(int), len(df) - 1)
+    ww = weather_waits(cfg)
+    reps = {comp: repair(cfg, kind) for comp, kind in REPAIR_KIND.items()}
+    offset = 0
 
-    def money(comp: str, years: np.ndarray) -> tuple[float, float]:
-        """(repair PV, lost-production PV per unit well rate) of these failures."""
-        r = repair(cfg, REPAIR_KIND[comp])
-        return r.cost * df[years].sum(), r.downtime * price * (df[years] * g[years]).sum()
+    def events(lam: float) -> np.ndarray:
+        """Failure times [s] in one field life."""
+        return rng.uniform(0.0, life, rng.poisson(lam * life))
+
+    def money(comp: str, t: np.ndarray) -> tuple[float, float]:
+        """(repair PV, lost-production PV per unit well rate) of failures at times ``t``."""
+        r = reps[comp]
+        years = np.minimum((t // YEAR).astype(int), len(df) - 1)
+        if ww is None:
+            return r.cost * df[years].sum(), r.downtime * price * (df[years] * g[years]).sum()
+        down = ww.downtime(REPAIR_KIND[comp], r, t, offset)
+        return (r.cost_at(down) * df[years]).sum(), price * (down * df[years] * g[years]).sum()
 
     out = []
     for _ in range(n):
+        if ww is not None:
+            offset = int(ww.draw_offsets(rng))               # hindcast year in which this life starts
         constant = 0.0
         for w in field.wells:
             rp, lp = money("xmas_tree", events(rate(cfg, "xmas_tree")))
@@ -168,10 +249,9 @@ def sample_scenarios(field: Field, cfg: dict, n: int | None = None,
             lam = {k: rate(cfg, "manifold", slots=k) for k in sizes}
             t = rng.uniform(0.0, life, rng.poisson(lam[sizes[-1]] * life))
             u = rng.uniform(size=len(t))
-            years_all = np.minimum((t // YEAR).astype(int), len(df) - 1)
             man_lost = {}
             for k in sizes:
-                rp, lp = money("manifold", years_all[u < lam[k] / lam[sizes[-1]]])
+                rp, lp = money("manifold", t[u < lam[k] / lam[sizes[-1]]])
                 site_size[s, k], man_lost[k] = rp, lp
             for w in field.wells:
                 qw = well_rate(cfg, w)

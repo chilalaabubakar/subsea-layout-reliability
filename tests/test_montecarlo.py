@@ -68,3 +68,60 @@ def test_cvar_milp_matches_brute_force(field, cfg):
         best = min(best, cost)
     sol = optimize_npv(field, cfg, risk_weight=rho, scenarios=sc)
     assert math.isclose(sol.info["cost_pv"], best, rel_tol=1e-6)
+
+
+# ---------------------------------------------------------------- weather wait by failure date
+def _solveig():
+    from layout_rel.config import REPO_ROOT, field_path, load_config
+    from layout_rel.layout import load_field
+    cfg = load_config(REPO_ROOT / "config" / "solveig_weather.yaml")
+    return load_field(field_path(cfg), param(cfg, "routing.length_factor")), cfg
+
+
+def test_mean_wait_mode_is_unchanged(field, cfg):
+    """Without an hourly wait file the simulation is the same as before the file existed."""
+    assert param(cfg, "montecarlo.weather_wait_file") is None
+    r = simulate_layout(field, cfg, {w: field.sites[0] for w in field.wells}, n=300, seed=1)
+    assert math.isclose(r.total_pv.sum(), 63326969854.333664, rel_tol=1e-12)
+    assert math.isclose(r.downtime.sum(), 35470607897.685, rel_tol=1e-12)
+
+
+def test_hourly_waits_keep_the_config_mean_and_are_seasonal():
+    from layout_rel.maintenance import repair
+    from layout_rel.montecarlo import weather_waits
+    from layout_rel.units import DAY, YEAR
+    field, cfg = _solveig()
+    ww = weather_waits(cfg)
+    assert len(ww.year_start) == 10 and ww.year_start[0] == 0
+    for kind, w in ww.wait.items():
+        assert math.isclose(w.mean(), param(cfg, f"maintenance.{kind}.weather_wait_days"), rel_tol=1e-9)
+    r = repair(cfg, "manifold")
+    years = np.arange(20) * YEAR
+    jan = ww.downtime("manifold", r, years + 15 * DAY - r.mobilisation, 0)      # vessel ready mid-January
+    jul = ww.downtime("manifold", r, years + 196 * DAY - r.mobilisation, 0)     # vessel ready mid-July
+    assert jan.mean() > 2 * jul.mean()
+    assert jul.min() >= r.mobilisation + r.active
+
+
+def test_sampled_waits_widen_the_spread_but_keep_the_mean():
+    import copy
+    field, cfg = _solveig()
+    fixed = copy.deepcopy(cfg)
+    fixed["montecarlo"]["weather_wait_file"]["value"] = None
+    a = {w: "M_CEN" for w in field.wells}
+    x = simulate_layout(field, cfg, a, {"M_CEN": 6}, n=4000).total_pv
+    y = simulate_layout(field, fixed, a, {"M_CEN": 6}, n=4000).total_pv
+    assert abs(x.mean() / y.mean() - 1) < 0.05
+    assert x.std() > y.std() and cvar(x, 0.95) > cvar(y, 0.95)
+
+
+def test_enumeration_on_scenarios_matches_cvar_milp(field, cfg):
+    from layout_rel.saa import ScenarioArrays, layout_table
+    sc = sample_scenarios(field, cfg, n=150, seed=11)
+    arr = ScenarioArrays.from_scenarios(field, cfg, sc)
+    a, s = SPLIT, default_sizes(cfg, SPLIT)
+    assert np.allclose(arr.cost(a, s), [scenario_cost(c, a, s) for c in sc], rtol=1e-12)
+    tab = layout_table(field, cfg, arr)
+    for w in (0.4, 1.0):
+        sol = optimize_npv(field, cfg, risk_weight=w, scenarios=sc)
+        assert math.isclose(sol.info["cost_pv"], tab.objective(w).min(), rel_tol=1e-6)

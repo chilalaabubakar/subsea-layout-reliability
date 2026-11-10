@@ -25,17 +25,32 @@ from .units import YEAR
 
 @dataclass(frozen=True)
 class Repair:
-    downtime: float       # s
-    cost: float           # USD (vessel + spare)
+    downtime: float            # s, with the mean weather wait
+    cost: float                # USD (vessel + spare) at that downtime
+    mobilisation: float = 0.0  # s
+    weather_wait: float = 0.0  # s, mean wait for a weather window
+    day_rate: float = 0.0      # USD/s
+    spare: float = 0.0         # USD
+
+    @property
+    def active(self) -> float:
+        """Active repair time [s] (incl. the flat weather allowance, if any)."""
+        return self.downtime - self.mobilisation - self.weather_wait
+
+    def cost_at(self, downtime):
+        """Repair cost [USD] of a failure with this downtime [s] (vessel on hire throughout)."""
+        return self.day_rate * downtime + self.spare
 
 
 def repair(cfg: dict, kind: str) -> Repair:
     vessel = param(cfg, f"maintenance.{kind}.vessel")
     active = param(cfg, f"maintenance.{kind}.repair_days") * (1 + param(cfg, "maintenance.weather_allowance"))
-    downtime = (param(cfg, f"vessels.{vessel}_mobilisation")
-                + param(cfg, f"maintenance.{kind}.weather_wait_days") + active)
-    cost = param(cfg, f"vessels.{vessel}_day_rate") * downtime + param(cfg, f"maintenance.{kind}.spare_cost")
-    return Repair(downtime=downtime, cost=cost)
+    mob = param(cfg, f"vessels.{vessel}_mobilisation")
+    wait = param(cfg, f"maintenance.{kind}.weather_wait_days")
+    downtime = mob + wait + active
+    day_rate, spare = param(cfg, f"vessels.{vessel}_day_rate"), param(cfg, f"maintenance.{kind}.spare_cost")
+    return Repair(downtime=downtime, cost=day_rate * downtime + spare, mobilisation=mob,
+                  weather_wait=wait, day_rate=day_rate, spare=spare)
 
 
 def well_rate(cfg: dict, well: str) -> float:

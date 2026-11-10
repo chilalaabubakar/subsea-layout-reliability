@@ -5,8 +5,9 @@
 2. Switching map: vessel mobilisation time x manifold failure rate -> number of manifolds
    in the case-2 optimum and the value of reliability-aware design.
 
-Usage:  python scripts/run_step8.py [--risk RHO] [path/to/config.yaml]
-        --risk RHO  also run the one-at-a-time study with CVaR weight RHO (slower, ~5 min)
+Usage:  python scripts/run_step8.py [--risk RHO] [--scenarios N] [path/to/config.yaml]
+        --risk RHO     also run the one-at-a-time study with CVaR weight RHO (slower)
+        --scenarios N  scenarios in each risk-averse MILP of that study (default: risk.n_scenarios)
 Writes (in results/ or results/<config name>/): step8_oat.csv, step8_tornado.png,
         step8_map.csv, step8_map.png (and step8_oat_risk.csv with --risk)
 """
@@ -121,8 +122,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("config", nargs="?", default=DEFAULT_CONFIG)
     ap.add_argument("--risk", type=float, default=None)
+    ap.add_argument("--scenarios", type=int, default=None,
+                    help="scenarios in each risk-averse MILP of the --risk study (default: risk.n_scenarios)")
     args = ap.parse_args()
     cfg = load_config(Path(args.config))
+    if args.scenarios is not None:
+        cfg["risk"]["n_scenarios"]["value"] = args.scenarios
     OUT = results_dir(args.config)
     field = load_field(field_path(cfg), param(cfg, "routing.length_factor"))
 

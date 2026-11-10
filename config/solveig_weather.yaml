@@ -9,31 +9,38 @@ maintenance:
       (weather_wait_days).'
   xmas_tree:
     weather_wait_days:
-      value: 4.66
+      value: 4.72
       unit: days (expected wait for a weather window, added to downtime)
       source: 'Computed by scripts/weather_windows.py: NORA3 Hs at Solveig 2014-01..2023-12,
         mode ''lifts'', year start times; DNV-ST-N001 (2023) Table 2-4 alpha, T_R
         = 2 T_POP, T_C >= 6 h.'
   manifold:
     weather_wait_days:
-      value: 15.77
+      value: 15.8
       unit: days (expected wait for a weather window, added to downtime)
       source: 'Computed by scripts/weather_windows.py: NORA3 Hs at Solveig 2014-01..2023-12,
         mode ''lifts'', year start times; DNV-ST-N001 (2023) Table 2-4 alpha, T_R
         = 2 T_POP, T_C >= 6 h.'
   flowline:
     weather_wait_days:
-      value: 15.77
+      value: 15.8
       unit: days (expected wait for a weather window, added to downtime)
       source: 'Computed by scripts/weather_windows.py: NORA3 Hs at Solveig 2014-01..2023-12,
         mode ''lifts'', year start times; DNV-ST-N001 (2023) Table 2-4 alpha, T_R
         = 2 T_POP, T_C >= 6 h.'
   umbilical:
     weather_wait_days:
-      value: 15.77
+      value: 15.8
       unit: days (expected wait for a weather window, added to downtime)
       source: 'Computed by scripts/weather_windows.py: NORA3 Hs at Solveig 2014-01..2023-12,
         mode ''lifts'', year start times; DNV-ST-N001 (2023) Table 2-4 alpha, T_R
         = 2 T_POP, T_C >= 6 h.'
 sensitivity:
   weather_allowance: null
+montecarlo:
+  weather_wait_file:
+    value: data/processed/weather_wait_hourly_solveig.csv
+    unit: '- (CSV with the weather wait in hours for every hindcast hour, columns
+      <repair kind>_h)'
+    source: 'Written by scripts/weather_windows.py: wait for a weather window if the
+      vessel is ready at that hour, NORA3 Hs at Solveig 2014-01..2023-12, mode ''lifts''.'

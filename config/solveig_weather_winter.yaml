@@ -9,28 +9,28 @@ maintenance:
       (weather_wait_days).'
   xmas_tree:
     weather_wait_days:
-      value: 8.23
+      value: 8.31
       unit: days (expected wait for a weather window, added to downtime)
       source: 'Computed by scripts/weather_windows.py: NORA3 Hs at Solveig 2014-01..2023-12,
         mode ''lifts'', winter start times; DNV-ST-N001 (2023) Table 2-4 alpha, T_R
         = 2 T_POP, T_C >= 6 h.'
   manifold:
     weather_wait_days:
-      value: 28.15
+      value: 28.04
       unit: days (expected wait for a weather window, added to downtime)
       source: 'Computed by scripts/weather_windows.py: NORA3 Hs at Solveig 2014-01..2023-12,
         mode ''lifts'', winter start times; DNV-ST-N001 (2023) Table 2-4 alpha, T_R
         = 2 T_POP, T_C >= 6 h.'
   flowline:
     weather_wait_days:
-      value: 28.15
+      value: 28.04
       unit: days (expected wait for a weather window, added to downtime)
       source: 'Computed by scripts/weather_windows.py: NORA3 Hs at Solveig 2014-01..2023-12,
         mode ''lifts'', winter start times; DNV-ST-N001 (2023) Table 2-4 alpha, T_R
         = 2 T_POP, T_C >= 6 h.'
   umbilical:
     weather_wait_days:
-      value: 28.15
+      value: 28.04
       unit: days (expected wait for a weather window, added to downtime)
       source: 'Computed by scripts/weather_windows.py: NORA3 Hs at Solveig 2014-01..2023-12,
         mode ''lifts'', winter start times; DNV-ST-N001 (2023) Table 2-4 alpha, T_R

@@ -41,6 +41,7 @@ python scripts/run_case1.py         # case 1: CAPEX-only optimal layout
 python scripts/run_failure_cost.py  # step 5: expected yearly failure cost of candidate layouts
 python scripts/run_case2.py         # cases 2-3: NPV-optimal layout incl. failures vs case 1
 python scripts/run_step7.py         # step 7: Monte Carlo check of the EV model, CVaR layouts (~1 min)
+python scripts/run_saa.py           # step 7: how much the CVaR layout depends on the scenario sample (~15 min)
 python scripts/run_step8.py         # step 8: sensitivity (add --risk 0.5 for the risk-averse study, ~6 min)
 pytest                           # run the tests
 ```

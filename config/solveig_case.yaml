@@ -12,3 +12,9 @@ production:
     value: 6361.0
     unit: bbl/day per well (plateau, all wells equal)
     source: "Sodir field_production_monthly, SOLVEIG, median net oil Apr 2023 - Aug 2025 (3034 Sm3/d) / 3 phase-1 producers = 1011 Sm3/d = 6361 bbl/d per well (scripts/prepare_solveig.py). Oil only; Solveig gas is not counted (conservative)."
+
+risk:
+  n_scenarios:
+    value: 5000
+    unit: "- (sampled failure scenarios inside the MILP)"
+    source: "Choice after the sample-average check (scripts/run_saa.py): 250 scenarios in the 5 % tail. With 1,000 scenarios the MILP answer varied between samples near the switching weight."

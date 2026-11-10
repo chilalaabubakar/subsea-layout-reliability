@@ -286,6 +286,10 @@ montecarlo:
     value: 12345
     unit: "-"
     source: "Fixed seed for reproducibility (CLAUDE.md conventions)."
+  weather_wait_file:
+    value: null
+    unit: "- (CSV with the weather wait in hours for every hindcast hour, columns <repair kind>_h; null = none)"
+    source: "null here: every simulated failure uses the mean wait (maintenance.<kind>.weather_wait_days). The North Sea case points to the hourly waits written by scripts/weather_windows.py, so each failure waits as long as the hindcast says for the hour its vessel is ready."
 
 risk:
   alpha:
@@ -304,6 +308,22 @@ risk:
     value: 2024
     unit: "-"
     source: "Fixed seed for the in-MILP scenarios (different from montecarlo.seed, so the out-of-sample check is independent)."
+  replication_scenarios:
+    value: 1000
+    unit: "- (scenarios in each replication of the sample-average check, scripts/run_saa.py)"
+    source: "Choice: the smallest sample used in the MILP, so the check shows how much a 1,000-scenario answer can vary."
+  replications:
+    value: 20
+    unit: "- (independent scenario samples for the sample-average check, scripts/run_saa.py)"
+    source: "Choice, after Kleywegt, Shapiro & Homem-de-Mello (2002) SIAM J. Optim. 12:479-502, who solve the sampled problem several times to judge the sampling error."
+  n_reference:
+    value: 100000
+    unit: "- (scenarios of the reference sample used to rank every layout, scripts/run_saa.py)"
+    source: "Choice: 5,000 scenarios in the 5 % tail; layouts are compared on the same sample (common random numbers)."
+  reference_seed:
+    value: 777
+    unit: "-"
+    source: "Fixed seed for the reference sample (independent of risk.seed and montecarlo.seed)."
 
 # What-if for the umbilical rate (scripts/umbilical_length_check.py). The model applies
 # reliability.tieback_umbilical.failure_rate_per_unit per installed umbilical, whatever its

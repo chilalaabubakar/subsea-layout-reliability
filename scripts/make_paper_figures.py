@@ -2,7 +2,8 @@
 figures4papers house style (see src/layout_rel/pubstyle.py).
 
 Reads saved results where they exist and re-runs only the quick pieces (layouts,
-20,000-life Monte Carlo of two layouts, about 1 min in total).
+20,000-life Monte Carlo of two layouts, about 1 min in total). The risk-averse layout of
+Figures 6 and 7 is the best layout on the reference sample (run scripts/run_saa.py first).
 
 Usage:  python scripts/make_paper_figures.py [path/to/config.yaml]
         (default: config/solveig_weather.yaml, the paper's base case)
@@ -17,7 +18,7 @@ import pandas as pd
 
 from layout_rel.config import REPO_ROOT, field_path, load_config, param, results_dir
 from layout_rel.layout import load_field
-from layout_rel.montecarlo import cvar, sample_scenarios, simulate_layout
+from layout_rel.montecarlo import cvar, default_sizes, sample_scenarios, simulate_layout
 from layout_rel.optimizer import optimize_capex, optimize_npv
 from layout_rel.plotting import plot_layout
 from layout_rel.pubstyle import PALETTE, FigureStyle, apply_publication_style, finalize_figure
@@ -181,9 +182,16 @@ def main(cfg_path):
     field = load_field(field_path(cfg), param(cfg, "routing.length_factor"))
     res = results_dir(cfg_path)
     c1 = optimize_capex(field, cfg)
-    ra = optimize_npv(field, cfg, risk_weight=1.0, scenarios=sample_scenarios(field, cfg))
+    ref = res / "step7_saa_reference.csv"
+    if ref.exists():    # risk-averse layout: the best one on the reference sample (scripts/run_saa.py)
+        text = pd.read_csv(ref).iloc[-1]["assignment"]
+        a = {w: dict(pair.split(":") for pair in text.split(";"))[w] for w in field.wells}
+        risk_averse = (a, default_sizes(cfg, a))
+    else:               # no reference ranking yet: the MILP answer for w = 1
+        ra = optimize_npv(field, cfg, risk_weight=1.0, scenarios=sample_scenarios(field, cfg))
+        risk_averse = (ra.assignment, ra.sizes)
     layouts = {"CAPEX-optimal (one 6-slot manifold)": (c1.assignment, c1.sizes),
-               "Risk-averse (4-slot + 2-slot manifolds)": (ra.assignment, ra.sizes)}
+               "Risk-averse (4-slot + 2-slot manifolds)": risk_averse}
     fig4_map(field, OUT / "fig4_solveig_map")
     fig5_weather(OUT / "fig5_weather_wait")
     fig6_mc(field, cfg, layouts, OUT / "fig6_mc_distribution")

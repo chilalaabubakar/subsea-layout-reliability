@@ -114,6 +114,7 @@ def main(cfg_path=DEFAULT_CONFIG):
         r = simulate_layout(field, cfg, sol.assignment, sol.sizes)
         s = summary(r.total_pv, alpha)
         rows.append({"rho": rho, "layout": describe(sol.assignment, sol.sizes),
+                     "assignment": ";".join(f"{w}:{s}" for w, s in sorted(sol.assignment.items())),
                      "EV NPV [MUSD]": n["npv"] / M, "CAPEX [MUSD]": n["capex"] / M,
                      "MC mean failure PV [MUSD]": s["mean"] / M,
                      f"MC {ck.upper()} failure PV [MUSD]": s[ck] / M,
