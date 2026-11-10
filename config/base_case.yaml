@@ -368,6 +368,38 @@ risk:
     unit: "-"
     source: "Fixed seed for the reference sample (independent of risk.seed and montecarlo.seed)."
 
+# Larger synthetic fields, to time the MILPs (scripts/run_scaling.py). Geometry only; all
+# other data come from the config the script is run with.
+scaling_study:
+  instances:
+    value: [[12, 6], [18, 8], [25, 13], [40, 16]]
+    unit: "- (pairs: number of wells, number of candidate manifold sites)"
+    source: "Choice. 25 wells and 13 sites is the size of the case in Silva & Guedes Soares (2025), Table 8."
+  well_density:
+    value: 0.64
+    unit: "- (wells per km2; wells are drawn uniformly in a square of area wells / density)"
+    source: "Solveig: 6 producing wells in a bounding box of 9.4 km2 (config/field_solveig.yaml)."
+  host_distance:
+    value: 17.7
+    unit: "- (km from the centre of the square to the host)"
+    source: "Solveig: distance from the well centroid to Edvard Grieg."
+  seed:
+    value: 1
+    unit: "-"
+    source: "Fixed seed for the well positions."
+  time_limit:
+    value: 900.0
+    unit: "- (seconds allowed for each MILP; the best layout found and its gap are reported after that)"
+    source: "Choice."
+  risk_weight:
+    value: 1.0
+    unit: "- (risk weight of the risk-averse MILP that is timed)"
+    source: "Choice: CVaR only, the largest share of scenario terms in the objective."
+  n_scenarios:
+    value: 1000
+    unit: "- (scenarios in the risk-averse MILP that is timed)"
+    source: "Choice: the smallest sample used in the paper."
+
 # Two modelling assumptions tested as whole cases (scripts/run_assumptions.py): shut-in
 # production that is deferred, not lost, and manifold failures that do not stop production.
 assumption_checks:

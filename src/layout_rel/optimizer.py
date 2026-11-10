@@ -32,6 +32,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field as dc_field
 
+import math
+
 import pyomo.environ as pyo
 
 from .config import param
@@ -133,19 +135,31 @@ def build_npv_model(field: Field, cfg: dict, risk_weight: float | None = None,
     return m
 
 
-def solve(m: pyo.ConcreteModel, cfg: dict) -> LayoutSolution:
+def solve(m: pyo.ConcreteModel, cfg: dict, time_limit: float | None = None) -> LayoutSolution:
+    """Solve to optimality. With ``time_limit`` [s] the best layout found in that time is
+    returned instead of an error; ``status`` then says so and ``info['gap']`` is the
+    relative gap between that layout's cost and the solver's lower bound."""
     solver = pyo.SolverFactory(param(cfg, "solver.name"))
     solver.config.mip_gap = param(cfg, "solver.mip_gap")
-    res = solver.solve(m)
+    gap = 0.0
+    if time_limit is None:
+        res = solver.solve(m)
+    else:
+        solver.highs_options = {"time_limit": float(time_limit)}
+        res = solver.solve(m, load_solutions=False)
+        if res.problem.upper_bound is None or not math.isfinite(res.problem.upper_bound):
+            raise RuntimeError(f"No layout found within {time_limit} s")
+        m.solutions.load_from(res)
+        gap = (res.problem.upper_bound - res.problem.lower_bound) / abs(res.problem.upper_bound)
     status = str(res.solver.termination_condition)
-    if not pyo.check_optimal_termination(res):
+    if time_limit is None and not pyo.check_optimal_termination(res):
         raise RuntimeError(f"Solver did not find an optimum: {status}")
 
     sizes = {s: k for s in m.S for k in m.K if pyo.value(m.size[s, k]) > 0.5}
     assignment = {w: s for w in m.W for s in m.S
                   if pyo.value(m.assign[w, s]) > 0.5}
     return LayoutSolution(open_sites=sorted(sizes), assignment=assignment, sizes=sizes,
-                          objective=pyo.value(m.cost), status=status)
+                          objective=pyo.value(m.cost), status=status, info={"gap": gap})
 
 
 def optimize_capex(field: Field, cfg: dict) -> LayoutSolution:

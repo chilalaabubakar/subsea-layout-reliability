@@ -88,3 +88,13 @@ def test_solveig_projection_matches_geodesic():
         d_geo = _vincenty(ref.lat, ref.lon, r.lat, r.lon)
         d_xy = math.hypot(math.radians(r.lon - ref.lon) * rx, math.radians(r.lat - ref.lat) * ry)
         assert abs(d_xy / d_geo - 1) < 1e-4, (r.fclName, d_xy, d_geo)
+
+
+def test_synthetic_field_is_reproducible_and_complete():
+    from layout_rel.synthetic import synthetic_field
+    a = synthetic_field(12, 6, 4000.0, 15000.0, seed=3)
+    b = synthetic_field(12, 6, 4000.0, 15000.0, seed=3)
+    assert len(a.wells) == 12 and len(a.sites) == 6
+    assert all(a.pos(n) == b.pos(n) for n in a.wells + a.sites)
+    assert all(0 <= a.pos(s)[0] <= 4000 and 0 <= a.pos(s)[1] <= 4000 for s in a.sites)   # centres of well clusters
+    assert a.length(a.sites[0], a.host) > 0
