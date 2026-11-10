@@ -8,7 +8,7 @@ Figures 6 and 7 is the best layout on the reference sample (run scripts/run_saa.
 Usage:  python scripts/make_paper_figures.py [path/to/config.yaml]
         (default: config/solveig_weather.yaml, the paper's base case)
 Writes: figures/fig4_solveig_map, fig5_weather_wait, fig6_mc_distribution,
-        fig7_layouts, fig8_tornado, fig9_switching_map  (.png at 300 dpi and .pdf)
+        fig7_layouts, fig8_tornado, fig9_switching_map, fig10_synthetic_field  (.png at 300 dpi and .pdf)
 """
 import sys
 from pathlib import Path
@@ -139,7 +139,7 @@ def fig8_tornado(res, out):
     ax.tick_params(axis="y", length=0)
     ax.spines["left"].set_visible(False)
     ax.set_xlabel(f"Change in failure-cost PV from base {base:,.0f} MUSD (MUSD)")
-    ax.legend(loc="lower right", fontsize=12, title="* optimal layout changes", title_fontsize=11)
+    ax.legend(loc="lower right", fontsize=12, title="* optimal layout changes" if changed else None, title_fontsize=11)
     finalize_figure(fig, out)
 
 
@@ -177,6 +177,48 @@ def fig9_map(res, out):
     finalize_figure(fig, out)
 
 
+def fig10_synthetic(cfg, out):
+    """Case 1 and case 2 layouts of one synthetic field (the 18-well field of the scaling study)."""
+    import math
+
+    from layout_rel.config import param_raw
+    from layout_rel.optimizer import build_capex_model, build_npv_model, solve
+    from layout_rel.synthetic import synthetic_field
+    from layout_rel.units import KM
+    g = lambda k: param_raw(cfg, f"scaling_study.{k}")
+    n_wells, n_sites = g("instances")[1]
+    field = synthetic_field(n_wells, n_sites, math.sqrt(n_wells / g("well_density")) * KM, g("host_distance") * KM,
+                            g("seed"), param(cfg, "routing.length_factor"))
+    c1 = solve(build_capex_model(field, cfg), cfg)
+    c2 = solve(build_npv_model(field, cfg, risk_weight=0.0), cfg)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 7))
+    for ax, sol, title in zip(axes, (c1, c2), ("Case 1: CAPEX only", "Case 2: NPV with failure costs")):
+        pos = {n: (field.pos(n)[0] / KM, field.pos(n)[1] / KM) for n in field.wells + field.sites}
+        for w, s in sol.assignment.items():
+            ax.plot([pos[w][0], pos[s][0]], [pos[w][1], pos[s][1]], color=P["grey_dark"], lw=1.2, zorder=1)
+        ax.scatter(*zip(*[pos[w] for w in field.wells]), marker="^", s=70, color=P["grey_mid"], zorder=2)
+        closed = [s for s in field.sites if s not in sol.sizes]
+        if closed:
+            ax.scatter(*zip(*[pos[s] for s in closed]), marker="s", s=70, facecolors="none", edgecolors="#A3A29C", lw=1.5, zorder=2)
+        for s, k in sol.sizes.items():
+            ax.scatter(*pos[s], marker="s", s=110, color=P["blue_main"], zorder=3)
+            ax.annotate(f"{k} slots", pos[s], xytext=(7, 7), textcoords="offset points", fontsize=11, color=P["ink"])
+            ax.annotate("", xy=(pos[s][0], pos[s][1] + 0.55), xytext=pos[s],
+                        arrowprops=dict(arrowstyle="-", color=P["ink"], lw=2), zorder=1)
+        ax.set_aspect("equal"); ax.set_title(title, loc="left", fontsize=14)
+        ax.set_xlabel("Easting [km]"); ax.set_ylabel("Northing [km]"); ax.grid(True, color="#E6E6E3", lw=0.8); ax.set_axisbelow(True)
+    handles = [Line2D([], [], marker="^", ls="", color=P["grey_mid"], ms=9, label="Well"),
+               Line2D([], [], marker="s", ls="", color=P["blue_main"], ms=9, label="Open manifold"),
+               Line2D([], [], marker="s", ls="", mfc="none", mec="#A3A29C", mew=1.5, ms=9, label="Unused site"),
+               Line2D([], [], color=P["grey_dark"], lw=1.2, label="Infield lines"),
+               Line2D([], [], color=P["ink"], lw=2, label="Start of the tie-back to the host (17.7 km north)")]
+    fig.legend(handles=handles, loc="lower center", ncol=3, fontsize=12)
+    fig.tight_layout(pad=2, rect=(0, 0.1, 1, 1))
+    for fmt in ("png", "pdf"):
+        fig.savefig(Path(out).with_suffix("." + fmt), dpi=300, facecolor="white")
+    plt.close(fig)
+
+
 def main(cfg_path):
     apply_publication_style(FigureStyle(font_size=15, axes_linewidth=2))
     cfg = load_config(cfg_path)
@@ -199,6 +241,7 @@ def main(cfg_path):
     fig7_layouts(field, layouts, OUT / "fig7_layouts")
     fig8_tornado(res, OUT / "fig8_tornado")
     fig9_map(res, OUT / "fig9_switching_map")
+    fig10_synthetic(cfg, OUT / "fig10_synthetic_field")
     print(f"Saved figures to {OUT}")
 
 

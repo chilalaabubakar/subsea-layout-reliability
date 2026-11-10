@@ -45,6 +45,8 @@ python scripts/run_saa.py           # step 7: how much the CVaR layout depends o
 python scripts/run_step8.py         # step 8: sensitivity (add --risk 0.5 for the risk-averse study, ~6 min)
 python scripts/run_assumptions.py   # step 8: deferred production and critical-only manifold failures as whole cases (~10 min)
 python scripts/run_scaling.py       # step 9: size and solve time of the MILPs on larger synthetic fields (~30 min)
+python scripts/run_scaling_spread.py # step 9: five fields per size and the f = 0, f = 1, critical-only variants (~1 h)
+python scripts/run_full_ranking.py  # step 7: every Solveig layout ranked by full simulation (~2 h on 2 cores)
 pytest                           # run the tests
 ```
 

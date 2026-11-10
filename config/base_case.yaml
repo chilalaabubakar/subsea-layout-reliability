@@ -387,6 +387,22 @@ scaling_study:
     value: 1
     unit: "-"
     source: "Fixed seed for the well positions."
+  replicates:
+    value: 5
+    unit: "- (fields drawn per size for the spread study, seeds seed .. seed + replicates - 1)"
+    source: "Choice (scripts/run_scaling_spread.py)."
+  spread_instances:
+    value: [[12, 6], [18, 8], [25, 13]]
+    unit: "- (sizes of the spread study: those that case 2 solves to optimality within the time limit)"
+    source: "Choice."
+  spread_variants:
+    value:
+      base: {}
+      f_0: {reliability.manifold.slot_fraction: 0.0}
+      f_1: {reliability.manifold.slot_fraction: 1.0}
+      critical_only: {reliability.manifold.critical_fraction: 0.493, reliability.manifold.slot_fraction: 0.921}
+    unit: "- (variant name -> {dotted config key: value})"
+    source: "Bounds of the per-slot share f, and the critical-only case of sensitivity.manifold_critical_only."
   time_limit:
     value: 900.0
     unit: "- (seconds allowed for each MILP; the best layout found and its gap are reported after that)"

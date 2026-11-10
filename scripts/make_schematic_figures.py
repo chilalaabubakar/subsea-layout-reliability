@@ -29,8 +29,8 @@ def fig1_workflow(out):
         ("Gather public data", "Well and host positions, equipment costs, failure rates, 10 years of wave data", "Sec. 3.1, 4"),
         ("Put a price on each failure", "Downtime = mobilization + waiting on weather + repair; cost = vessel hire + lost oil", "Sec. 3.4–3.7"),
         ("Optimize the layout twice", "Case 1: cheapest to build.  Case 2: highest NPV once failure costs are included", "Sec. 3.8"),
-        ("Check the answer", "Simulate random failures over the field life; add a risk-averse version of Case 2", "Sec. 3.9"),
-        ("Test the assumptions", "Change one input at a time; map where the best layout switches", "Sec. 3.10"),
+        ("Check the answer", "Simulate random failures over the field life; rank all layouts by simulated risk", "Sec. 3.9"),
+        ("Test the assumptions", "One input at a time; switching map; deferred production; larger synthetic fields", "Sec. 3.10"),
     ]
     W, H = 10.0, 8.2
     fig, ax = plt.subplots(figsize=(W, H))
