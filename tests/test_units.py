@@ -13,7 +13,7 @@ def test_every_numeric_param_has_known_unit(cfg):
 
 def test_conversions(cfg):
     assert math.isclose(param(cfg, "capex.manifold.install_days"), 2 * DAY)
-    assert math.isclose(param(cfg, "vessels.hlv_day_rate") * DAY, 400e3)
+    assert math.isclose(param(cfg, "vessels.hlv_day_rate") * DAY, 400e3 * 313.689 / 214.537)   # 2009 -> 2024 money
     assert math.isclose(param(cfg, "reliability.manifold.failure_rate_per_h") * HOUR, 23.82e-6)
     # 2.4e-4 per km-year -> per m per s
     assert math.isclose(param(cfg, "reliability.infield_flowline.failure_rate_per_km") * 1000 * YEAR, 2.4e-4)

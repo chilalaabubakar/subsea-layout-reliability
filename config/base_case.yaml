@@ -6,9 +6,23 @@
 #
 # Cost sources: see docs/sources.md.
 #   Lines: Kaiser (2016), installed, 2014 USD.
-#   Trees, manifolds, vessels: Bai & Bai (2010) Ch. 6, 2009 USD. Not yet escalated
-#   to a common year; overheads/contingency (Bai Fig. 6-18) not yet applied.
+#   Trees, manifolds, vessels: Bai & Bai (2010) Ch. 6, 2009 USD (Table 6-6: 2007 data).
+#   Escalated to one year by the `escalation` block below; overheads/contingency
+#   (Bai Fig. 6-18) not applied.
 # Run `python -m layout_rel.config` to list any parameter still marked PLACEHOLDER.
+
+# Costs come from sources of different years. Each cost parameter carries `cost_year` (the
+# year of the money its source quotes); config.param() multiplies it by
+# index[target_year] / index[cost_year]. Set target_year to null to use the source values as is.
+escalation:
+  target_year:
+    value: 2024
+    unit: "- (year of the money in which all costs are expressed)"
+    source: "Choice: latest year with a settled annual index. The oil price assumption (production.oil_price) is taken as 2024 money too."
+  index:
+    value: {2007: 207.342, 2009: 214.537, 2014: 236.736, 2024: 313.689}
+    unit: "- (US CPI-U, all items, U.S. city average, annual average, 1982-84 = 100)"
+    source: "U.S. Bureau of Labor Statistics, Consumer Price Index for All Urban Consumers (CPI-U), annual averages (https://www.bls.gov/regions/northeast/data/consumerpriceindex_us_table.htm, accessed 10 Nov 2026). A general price index: no public index of subsea equipment and vessel costs covers 2007-2024 (the IHS Upstream Capital Costs Index is proprietary). Sector costs do not follow consumer prices exactly; cost ranges are tested in the sensitivity analysis."
 
 field_file:
   value: field_toy.yaml
@@ -29,10 +43,12 @@ vessels:
   modu_deep_day_rate:
     value: 950.0e+3
     unit: USD/day
+    cost_year: 2009
     source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-3, MODU > 1500 m (5000 ft), average day rate (min 750k, max 1050k)."
   msv_day_rate:
     value: 80.0e+3
     unit: USD/day
+    cost_year: 2009
     source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-3, MSV (multi-service vessel), average day rate (min 40k, max 120k)."
   msv_mobilisation:
     value: 14.0
@@ -45,6 +61,7 @@ vessels:
   hlv_day_rate:
     value: 400.0e+3
     unit: USD/day
+    cost_year: 2009
     source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-3, HLV (heavy-lift vessel), average day rate (min 250k, max 550k)."
 
 capex:
@@ -52,10 +69,12 @@ capex:
     procurement:
       value: 2.95e+6
       unit: USD per tree (2009 USD)
+      cost_year: 2009
       source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, p. 174, Eq. 6-6: C = fs*ft*fp*C0 + Cmisc with C0 = 2.75 MUSD average (5-in, 10 ksi, VXT, carbon steel; min 2.50, max 3.00), fs = ft = fp = 1, Cmisc = 0.20 MUSD average (insulation). Includes pipeline connector, tree cap, ROV choke; excludes tubing hanger, SCM, junction plate, sensors."
     sit:
       value: 0.20e+6
       unit: USD per tree
+      cost_year: 2009
       source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-2, SIT cost, tree and tubing hanger, average (min 0.10, max 0.30 MUSD)."
     install_days:
       value: 3.0
@@ -69,18 +88,22 @@ capex:
     procurement_base:
       value: 3.0e+6
       unit: USD per 4-slot manifold (2009 USD), scaled by manifold.slot_cost_factor
+      cost_year: 2009
       source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, p. 176, Eq. 6-7: C = fs*fn*ft*C0 + Cmisc with C0 = 3.0 MUSD average (4-slot cluster, 10-in header, 10 ksi, carbon steel; min 2.0, max 4.0), fs = ft = 1."
     procurement_misc:
       value: 0.25e+6
       unit: USD per manifold (2009 USD)
+      cost_year: 2009
       source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, p. 177, Cmisc (e.g. insulation), average (min 0.15, max 0.35 MUSD)."
     sit:
       value: 0.20e+6
       unit: USD per manifold
+      cost_year: 2009
       source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-2, SIT cost, manifold, average (min 0.15, max 0.25 MUSD)."
     foundation:
       value: 1.0e+6
       unit: USD per manifold (2007 USD)
+      cost_year: 2007
       source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-6 (2007 data), suction pile for manifold: 1,000,000 USD."
     install_days:
       value: 2.0
@@ -93,18 +116,22 @@ capex:
   infield_flowline:
     value: 2243.0
     unit: USD/m (well -> manifold flowline/jumper, installed, 2014 USD)
+    cost_year: 2014
     source: "Kaiser, M.J. (2016). A review of deepwater pipeline construction in the U.S. Gulf of Mexico - contracts, cost, and installation methods. J. Marine Sci. Appl. 15(3):288-306, doi:10.1007/s11804-016-1373-7. Table 2, infield, All: 3.61 MMUSD/mi (2014 USD, sd 3.19), = 3.61e6/1609.344 USD/m. Kaiser normalises (flowline+umbilical cost) by (flowline+umbilical mileage), so the same rate applies per m of each line. GoM data; no split by line type or diameter."
   infield_umbilical:
     value: 2243.0
     unit: USD/m (manifold -> well umbilical jumper, installed, 2014 USD)
+    cost_year: 2014
     source: "Kaiser, M.J. (2016). A review of deepwater pipeline construction in the U.S. Gulf of Mexico - contracts, cost, and installation methods. J. Marine Sci. Appl. 15(3):288-306, doi:10.1007/s11804-016-1373-7. Table 2, infield, All: 3.61 MMUSD/mi (2014 USD, sd 3.19), = 3.61e6/1609.344 USD/m. Kaiser normalises (flowline+umbilical cost) by (flowline+umbilical mileage), so the same rate applies per m of each line. GoM data; no split by line type or diameter."
   tieback_flowline:
     value: 2243.0
     unit: USD/m (manifold -> host production flowline, installed, 2014 USD)
+    cost_year: 2014
     source: "Kaiser, M.J. (2016). A review of deepwater pipeline construction in the U.S. Gulf of Mexico - contracts, cost, and installation methods. J. Marine Sci. Appl. 15(3):288-306, doi:10.1007/s11804-016-1373-7. Table 2, infield, All: 3.61 MMUSD/mi (2014 USD, sd 3.19), = 3.61e6/1609.344 USD/m. Kaiser normalises (flowline+umbilical cost) by (flowline+umbilical mileage), so the same rate applies per m of each line. GoM data; no split by line type or diameter."
   tieback_umbilical:
     value: 2243.0
     unit: USD/m (host -> manifold main umbilical, installed, 2014 USD)
+    cost_year: 2014
     source: "Kaiser, M.J. (2016). A review of deepwater pipeline construction in the U.S. Gulf of Mexico - contracts, cost, and installation methods. J. Marine Sci. Appl. 15(3):288-306, doi:10.1007/s11804-016-1373-7. Table 2, infield, All: 3.61 MMUSD/mi (2014 USD, sd 3.19), = 3.61e6/1609.344 USD/m. Kaiser normalises (flowline+umbilical cost) by (flowline+umbilical mileage), so the same rate applies per m of each line. GoM data; no split by line type or diameter."
 
 production:
@@ -200,6 +227,7 @@ maintenance:
     spare_cost:
       value: 1.703e+6
       unit: USD per failure (2007 USD)
+      cost_year: 2007
       source: "Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-6 (2007 data): tree-mounted controls, 3 units = 5,108,940 USD -> 1.703 MUSD per SCM. Assumes every tree failure needs a new SCM (conservative)."
   manifold:
     vessel:
@@ -221,6 +249,7 @@ maintenance:
     spare_cost:
       value: 1.104e+6
       unit: USD per failure (2007 USD)
+      cost_year: 2007
       source: "Proxy: Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing, Table 6-6 (2007 data), 'Manifold Equipments' 1,104,163 USD. Assumes one manifold module/valve set per failure."
   flowline:
     vessel:
@@ -242,6 +271,7 @@ maintenance:
     spare_cost:
       value: 0.59e+6
       unit: USD per failure (2009 USD)
+      cost_year: 2009
       source: "Assumption: replace 1 km of 10-in rigid pipe at Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing p. 179 base cost 230 USD/m + coating 360 USD/m."
   umbilical:
     vessel:
@@ -263,6 +293,7 @@ maintenance:
     spare_cost:
       value: 1.52e+6
       unit: USD per failure (2007 USD)
+      cost_year: 2007
       source: "Assumption: replace 1 km of umbilical at Bai, Y. & Bai, Q. (2010). Subsea Engineering Handbook. Gulf Professional Publishing Table 6-6 procurement rate (11,606,659 USD / 25,000 ft = 1523 USD/m)."
 
 # Field-life economics (NPV). CAPEX at t = 0, production years t = 1..field_life.

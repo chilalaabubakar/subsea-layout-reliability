@@ -1,9 +1,9 @@
 umbilical rate,risk weight w,layout,NPV [MUSD],failure PV [MUSD]
-per unit (model),0.0,M_CEN(6-slot),4778.725898977141,309.11694309723265
-per unit (model),1.0,M_ACT(4-slot) + M_BG(2-slot),4713.440923762817,286.19742419492474
-"per km, 0.0021 /km-yr (unit length 17.7 km)",0.0,M_CEN(6-slot),4778.724498992953,309.11834308141954
-"per km, 0.0021 /km-yr (unit length 17.7 km)",1.0,M_ACT(4-slot) + M_BG(2-slot),4714.822637910091,284.8157100476527
-"per km, 0.0075 /km-yr (unit length 5 km)",0.0,M_CEN(6-slot),4689.464227803564,398.3786142708088
-"per km, 0.0075 /km-yr (unit length 5 km)",1.0,M_BG(2-slot) + M_CEN(4-slot),4622.899393574981,383.05144819006557
-"per km, 0.0187 /km-yr (unit length 2 km)",0.0,M_BG(6-slot),4517.228686651054,530.4431322215694
-"per km, 0.0187 /km-yr (unit length 2 km)",1.0,M_BG(6-slot),4517.228686651054,530.4431322215694
+per unit (model),0.0,M_CEN(6-slot),4672.672405311945,341.09289080088513
+per unit (model),1.0,M_ACT(4-slot) + M_BG(2-slot),4565.667887739171,330.5637735978856
+"per km, 0.0021 /km-yr (unit length 17.7 km)",0.0,M_CEN(6-slot),4672.67087314992,341.09442296290945
+"per km, 0.0021 /km-yr (unit length 17.7 km)",1.0,M_ACT(4-slot) + M_BG(2-slot),4567.437027539856,328.7946337972007
+"per km, 0.0075 /km-yr (unit length 5 km)",0.0,M_CEN(6-slot),4574.983199905436,438.7820962073947
+"per km, 0.0075 /km-yr (unit length 5 km)",1.0,M_CEN(6-slot),4574.983199905436,438.7820962073947
+"per km, 0.0187 /km-yr (unit length 2 km)",0.0,M_BG(6-slot),4377.082946859979,583.4534018298435
+"per km, 0.0187 /km-yr (unit length 2 km)",1.0,M_BG(6-slot),4377.082946859979,583.4534018298435

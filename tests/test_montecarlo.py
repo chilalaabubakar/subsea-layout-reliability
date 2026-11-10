@@ -79,8 +79,12 @@ def _solveig():
 
 
 def test_mean_wait_mode_is_unchanged(field, cfg):
-    """Without an hourly wait file the simulation is the same as before the file existed."""
+    """Without an hourly wait file, and with costs in the money of their sources, the
+    simulation gives the numbers it gave before dated waits and escalation existed."""
+    import copy
     assert param(cfg, "montecarlo.weather_wait_file") is None
+    cfg = copy.deepcopy(cfg)
+    cfg["escalation"]["target_year"]["value"] = None
     r = simulate_layout(field, cfg, {w: field.sites[0] for w in field.wells}, n=300, seed=1)
     assert math.isclose(r.total_pv.sum(), 63326969854.333664, rel_tol=1e-12)
     assert math.isclose(r.downtime.sum(), 35470607897.685, rel_tol=1e-12)

@@ -1,6 +1,6 @@
 w,MILP layout,best layout on reference,reference cost [MUSD],regret on reference [MUSD],regret [% of cost]
-0.0,M_CEN(6-slot: 6),M_CEN(6-slot: 6),514.7368542046439,0.0,0.0
-0.25,M_CEN(6-slot: 6),M_CEN(6-slot: 6),624.6679387807634,0.0,0.0
-0.5,M_ACT(4-slot: 4) + M_BG(2-slot: 2),M_BF(4-slot: 4) + M_BG(2-slot: 2),740.6503937701933,7.6044413673853875,1.0373758074045947
-0.75,M_ACT(4-slot: 4) + M_BG(2-slot: 2),M_BF(4-slot: 4) + M_BG(2-slot: 2),820.9721178806682,8.629999712600947,1.0623602444820524
-1.0,M_ACT(4-slot: 4) + M_BG(2-slot: 2),M_BF(4-slot: 4) + M_BG(2-slot: 2),901.293841991143,9.655558057816505,1.0829007941676183
+0.0,M_CEN(6-slot: 6),M_CEN(6-slot: 6),620.5448817726112,0.0,0.0
+0.25,M_CEN(6-slot: 6),M_CEN(6-slot: 6),738.1703082057427,0.0,0.0
+0.5,M_CEN(6-slot: 6),M_CEN(6-slot: 6),855.7957346388743,0.0,0.0
+0.75,M_CEN(6-slot: 6),M_CEN(6-slot: 6),973.4211610720057,0.0,0.0
+1.0,M_ACT(4-slot: 4) + M_BG(2-slot: 2),M_BF(4-slot: 4) + M_BG(2-slot: 2),1084.450283621617,11.771905193807841,1.0974310129250098

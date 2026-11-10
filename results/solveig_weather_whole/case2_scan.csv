@@ -4,9 +4,9 @@ mobilisation time x,1.0,1,M_CEN(6-slot: 6 wells),0.0
 mobilisation time x,1.5,1,M_CEN(6-slot: 6 wells),0.0
 mobilisation time x,2.0,1,M_CEN(6-slot: 6 wells),0.0
 mobilisation time x,3.0,1,M_CEN(6-slot: 6 wells),0.0
-mobilisation time x,4.0,2,M_BG(2-slot: 2 wells) + M_CEN(4-slot: 4 wells),12.286341023900986
+mobilisation time x,4.0,1,M_CEN(6-slot: 6 wells),0.0
 manifold failure rate x,0.5,1,M_CEN(6-slot: 6 wells),0.0
 manifold failure rate x,1.0,1,M_CEN(6-slot: 6 wells),0.0
-manifold failure rate x,2.0,2,M_BG(2-slot: 2 wells) + M_CEN(4-slot: 4 wells),33.91977506500149
-manifold failure rate x,3.0,2,M_BG(2-slot: 2 wells) + M_CEN(4-slot: 4 wells),100.50704408782816
-manifold failure rate x,4.0,2,M_BG(2-slot: 2 wells) + M_CEN(4-slot: 4 wells),167.09431311065626
+manifold failure rate x,2.0,1,M_CEN(6-slot: 6 wells),0.0
+manifold failure rate x,3.0,2,M_BG(2-slot: 2 wells) + M_CEN(4-slot: 4 wells),10.134056956412792
+manifold failure rate x,4.0,2,M_BG(2-slot: 2 wells) + M_CEN(4-slot: 4 wells),58.45116474549627

@@ -98,8 +98,25 @@ def param(cfg: dict[str, Any], key: str) -> Any:
     value = param_raw(cfg, key)
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return value
-    factor = si_factor(node.get("unit", "-"))
+    factor = si_factor(node.get("unit", "-")) * escalation_factor(cfg, node.get("cost_year"))
     return value if factor == 1.0 else value * factor     # keeps ints (seeds, counts) as ints
+
+
+def escalation_factor(cfg: dict[str, Any], cost_year: int | None) -> float:
+    """Factor that brings a cost of ``cost_year`` money to the config's common cost year.
+
+    A cost parameter says in which year's money its source quotes it (field ``cost_year``).
+    ``escalation.index`` is a price index by year and ``escalation.target_year`` the common
+    year: factor = index[target] / index[cost_year]. Parameters without ``cost_year``, or a
+    config with ``target_year: null``, are not escalated.
+    """
+    if cost_year is None or "escalation" not in cfg:
+        return 1.0
+    target = cfg["escalation"]["target_year"]["value"]
+    if target is None:
+        return 1.0
+    index = cfg["escalation"]["index"]["value"]
+    return index[target] / index[cost_year]
 
 
 def iter_params(cfg: dict[str, Any], prefix: str = ""):
