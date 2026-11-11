@@ -160,13 +160,13 @@ def _lost_pv_of_intervals(intervals: list[tuple[float, float]], q: float, price:
 
 def simulate_layout(field: Field, cfg: dict, assignment: dict[str, str],
                     sizes: dict[str, int] | None = None, n: int | None = None,
-                    seed: int | None = None) -> SimulationResult:
+                    seed: int | None = None, links: dict[str, str] | None = None) -> SimulationResult:
     """Simulate ``n`` field lives of a fixed layout (with outage overlap)."""
     n = int(n or param(cfg, "montecarlo.n_sims"))
     rng = np.random.default_rng(param(cfg, "montecarlo.seed") if seed is None else seed)
     df, g, life, lw = _year_tables(cfg)
     price = param(cfg, "production.oil_price")
-    modes = [m for m in failure_modes(field, cfg, assignment, sizes) if m.rate > 0]
+    modes = [m for m in failure_modes(field, cfg, assignment, sizes, links) if m.rate > 0]
     reps = [repair(cfg, m.repair_kind) for m in modes]
     q = {w: well_rate(cfg, w) for w in field.wells}
 

@@ -1,0 +1,8 @@
+# solveig_weather with daisy chains allowed (routing.daisy_chain). Only the changed parameter is listed.
+_extends: solveig_weather.yaml
+
+routing:
+  daisy_chain:
+    value: true
+    unit: "- (true: a manifold may tie into another open manifold instead of running its own tie-back to the host)"
+    source: "Layout option, see base_case.yaml."

@@ -107,18 +107,48 @@ def site_modes(field: Field, cfg: dict, site: str, wells: tuple[str, ...],
     ]
 
 
+def link_modes(field: Field, cfg: dict, sat: str, hub: str, wells: tuple[str, ...]) -> list[FailureMode]:
+    """Failure modes of the daisy-chain lines from satellite ``sat`` to hub ``hub``.
+
+    They carry only the satellite's wells, so a failure stops those wells. They fail and
+    are repaired like tie-back lines of the same length.
+    """
+    L = field.length(sat, hub)
+    return [
+        FailureMode(f"link flowline {sat}-{hub}", REPAIR_KIND["tieback_flowline"],
+                    rate(cfg, "tieback_flowline", L), wells),
+        FailureMode(f"link umbilical {sat}-{hub}", REPAIR_KIND["tieback_umbilical"],
+                    rate(cfg, "tieback_umbilical", L), wells),
+    ]
+
+
 def failure_modes(field: Field, cfg: dict, assignment: dict[str, str],
-                  sizes: dict[str, int] | None = None) -> list[FailureMode]:
+                  sizes: dict[str, int] | None = None,
+                  links: dict[str, str] | None = None) -> list[FailureMode]:
     """All failure modes of a layout given as {well: site} and {site: slots}.
 
-    If ``sizes`` is omitted, each site gets the smallest manifold that fits its wells.
+    If ``sizes`` is omitted, each site gets the smallest manifold that fits its wells (and
+    one slot per satellite tied into it). ``links`` maps a satellite site to its hub site
+    (daisy chain): the satellite has no tie-back of its own, and a failure of the hub's
+    manifold or tie-back also stops the satellite's wells.
     """
-    from .economics import smallest_size          # local import avoids a cycle
+    from .economics import check_links, hub_load, smallest_size     # local import avoids a cycle
+    links = links or {}
+    check_links(assignment, links)
+    load = hub_load(assignment, links)
     modes: list[FailureMode] = []
     for w in field.wells:
         modes += well_modes(field, cfg, w, assignment[w])
-    for s in sorted(set(assignment.values())):
-        wells = tuple(w for w in field.wells if assignment[w] == s)
-        k = sizes[s] if sizes else smallest_size(cfg, len(wells))
-        modes += site_modes(field, cfg, s, wells, k)
+    own = {s: tuple(w for w in field.wells if assignment[w] == s) for s in set(assignment.values())}
+    for s in sorted(own):
+        k = sizes[s] if sizes else smallest_size(cfg, load[s])
+        if s in links:                                   # satellite: own manifold, link lines
+            modes.append(site_modes(field, cfg, s, own[s], k)[0])
+            modes += link_modes(field, cfg, s, links[s], own[s])
+        else:                                            # hub or stand-alone: wells behind it too
+            behind = own[s] + tuple(w for sat, hub in links.items() if hub == s for w in own[sat])
+            man, *tie = site_modes(field, cfg, s, behind, k)
+            if not param(cfg, "routing.hub_manifold_stops_satellites"):
+                man = FailureMode(man.name, man.repair_kind, man.rate, own[s])
+            modes += [man, *tie]
     return modes

@@ -67,6 +67,10 @@ def build_field(data: dict, length_factor: float = 1.0) -> Field:
             g.add_edge(w, s, kind="infield", length=d)
         d = _euclid(g.nodes[s]["pos"], g.nodes[host]["pos"]) * length_factor
         g.add_edge(s, host, kind="tieback", length=d)
+    for i, s in enumerate(sites):                 # site to site: daisy-chain links
+        for t in sites[i + 1:]:
+            d = _euclid(g.nodes[s]["pos"], g.nodes[t]["pos"]) * length_factor
+            g.add_edge(s, t, kind="link", length=d)
 
     if len(set(wells + sites + [host])) != len(wells) + len(sites) + 1:
         raise ValueError("Node names must be unique")

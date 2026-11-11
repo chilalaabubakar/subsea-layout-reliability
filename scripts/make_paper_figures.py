@@ -219,10 +219,11 @@ def fig10_synthetic(cfg, out):
     plt.close(fig)
 
 
-def fig11_vigdis(out):
-    """Case 1 and case 2 layouts of the Vigdis field (wells sit at their templates)."""
+def fig11_vigdis(out, cfg_name="vigdis_weather.yaml"):
+    """Case 1 and case 2 layouts of the Vigdis field (wells sit at their templates).
+    With the daisy-chain config, satellite-to-hub lines are drawn dashed."""
     from layout_rel.optimizer import optimize_capex, optimize_npv
-    cfg = load_config(REPO_ROOT / "config" / "vigdis_weather.yaml")
+    cfg = load_config(REPO_ROOT / "config" / cfg_name)
     field = load_field(field_path(cfg), param(cfg, "routing.length_factor"))
     c1, c2 = optimize_capex(field, cfg), optimize_npv(field, cfg)
     km = lambda n: (field.pos(n)[0] / 1000, field.pos(n)[1] / 1000)
@@ -234,7 +235,9 @@ def fig11_vigdis(out):
         for w, s in sol.assignment.items():
             ax.plot([km(w)[0], km(s)[0]], [km(w)[1], km(s)[1]], color=P["grey_dark"], lw=1.2, zorder=1)
         for s, k in sol.sizes.items():
-            ax.plot([km(s)[0], km(field.host)[0]], [km(s)[1], km(field.host)[1]], color=P["ink"], lw=2, zorder=1)
+            end = sol.links.get(s, field.host)
+            ax.plot([km(s)[0], km(end)[0]], [km(s)[1], km(end)[1]], color=P["ink"], lw=2, zorder=1,
+                    ls="--" if s in sol.links else "-")
         for (x, y), ws in templates.items():
             ax.scatter(x, y, marker="^", s=90, color=P["grey_mid"], zorder=2)
             t = field.graph.nodes[ws[0]].get("label", ws[0])[0]
@@ -256,6 +259,8 @@ def fig11_vigdis(out):
                Line2D([], [], marker="s", ls="", mfc="none", mec="#A3A29C", mew=1.5, ms=9, label="Unused centroid site"),
                Line2D([], [], color=P["grey_dark"], lw=1.2, label="Infield lines"),
                Line2D([], [], color=P["ink"], lw=2, label="Tie-back")]
+    if any(sol.links for sol in (c1, c2)):
+        handles.append(Line2D([], [], color=P["ink"], lw=2, ls="--", label="Daisy-chain line to hub"))
     fig.legend(handles=handles, loc="lower center", ncol=3, fontsize=12)
     fig.tight_layout(pad=2, rect=(0, 0.1, 1, 1))
     for fmt in ("png", "pdf"):
@@ -287,6 +292,7 @@ def main(cfg_path):
     fig9_map(res, OUT / "fig9_switching_map")
     fig10_synthetic(cfg, OUT / "fig10_synthetic_field")
     fig11_vigdis(OUT / "fig11_vigdis_layouts")
+    fig11_vigdis(OUT / "fig12_vigdis_daisy", "vigdis_weather_daisy.yaml")
     print(f"Saved figures to {OUT}")
 
 

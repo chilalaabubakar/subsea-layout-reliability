@@ -27,6 +27,14 @@ Case 2 adds z[w,s,k] >= assign[w,s] + size[s,k] - 1 (z >= 0), the linear form of
 assign*size, needed because a manifold's failure rate depends on its slot count
 and its failure stops every well on it. z has a positive cost and is minimised,
 so it equals the product at the optimum.
+
+Daisy chain (config routing.daisy_chain): an open site either runs its own tie-back
+(tb[s] = 1) or ties into another open site t that has one (link[s,t] = 1):
+    open[s] = tb[s] + sum_t link[s,t],   link[s,t] <= tb[t]
+and the incoming line takes one slot of the hub. Every open site carries at least one
+well. Case 2 then adds v[w,s,t] = assign[w,s] * link[s,t] (exact: three inequalities,
+because v can carry a negative cost) and y[w,s,t,k] >= v[w,s,t] + size[t,k] - 1, the
+loss of a satellite's wells when its hub manifold fails.
 """
 from __future__ import annotations
 
@@ -38,7 +46,7 @@ import pyomo.environ as pyo
 
 from .config import param
 from .economics import annuity_factors, capex_coefficients, manifold_sizes, revenue_pv
-from .maintenance import FailureCostCoefficients, failure_cost_coefficients
+from .maintenance import FailureCostCoefficients, daisy_coefficients, failure_cost_coefficients
 from .layout import Field
 
 
@@ -50,6 +58,7 @@ class LayoutSolution:
     objective: float                    # USD
     status: str
     info: dict = dc_field(default_factory=dict)
+    links: dict = dc_field(default_factory=dict)   # {satellite site: hub site} (daisy chain)
 
 
 def _base_model(field: Field, cfg: dict, name: str) -> pyo.ConcreteModel:
@@ -66,16 +75,27 @@ def _base_model(field: Field, cfg: dict, name: str) -> pyo.ConcreteModel:
     m.one_size = pyo.Constraint(m.S, rule=lambda m, s: m.open[s] <= 1)
     m.one_manifold = pyo.Constraint(
         m.W, rule=lambda m, w: sum(m.assign[w, s] for s in m.S) == 1)
+    m.daisy = bool(param(cfg, "routing.daisy_chain"))
+    if m.daisy:
+        m.P = pyo.Set(initialize=[(s, t) for s in field.sites for t in field.sites if s != t], dimen=2)
+        m.tb = pyo.Var(m.S, domain=pyo.Binary)
+        m.lnk = pyo.Var(m.P, domain=pyo.Binary)
+        m.route = pyo.Constraint(m.S, rule=lambda m, s: m.open[s] == m.tb[s] + sum(m.lnk[s, t] for t in m.S if t != s))
+        m.hub_only = pyo.Constraint(m.P, rule=lambda m, s, t: m.lnk[s, t] <= m.tb[t])
+        m.nonempty = pyo.Constraint(m.S, rule=lambda m, s: sum(m.assign[w, s] for w in m.W) >= m.open[s])
+    incoming = (lambda m, s: sum(m.lnk[t, s] for t in m.S if t != s)) if m.daisy else (lambda m, s: 0)
     m.capacity = pyo.Constraint(
-        m.S, rule=lambda m, s: sum(m.assign[w, s] for w in m.W)
+        m.S, rule=lambda m, s: sum(m.assign[w, s] for w in m.W) + incoming(m, s)
         <= sum(k * m.size[s, k] for k in m.K))
     m.link = pyo.Constraint(
         m.W, m.S, rule=lambda m, w, s: m.assign[w, s] <= m.open[s])
 
     c = capex_coefficients(field, cfg)
+    lines = (sum(c.tieback[s] * m.tb[s] for s in m.S) + sum(c.link[p] * m.lnk[p] for p in m.P)) if m.daisy \
+        else sum(c.tieback[s] * m.open[s] for s in m.S)
     m.capex_expr = pyo.Expression(expr=c.tree_total
         + sum(c.manifold[k] * m.size[s, k] for s in m.S for k in m.K)
-        + sum(c.tieback[s] * m.open[s] for s in m.S)
+        + lines
         + sum(c.connect[w, s] * m.assign[w, s] for w in m.W for s in m.S))
     return m
 
@@ -111,7 +131,22 @@ def build_npv_model(field: Field, cfg: dict, risk_weight: float | None = None,
     m.z = pyo.Var(m.W, m.S, m.K, domain=pyo.NonNegativeReals)
     m.z_link = pyo.Constraint(m.W, m.S, m.K, rule=lambda m, w, s, k:
                               m.z[w, s, k] >= m.assign[w, s] + m.size[s, k] - 1)
-    m.failure_expr = pyo.Expression(expr=_failure_cost(m, f))
+    failure = _failure_cost(m, f)
+    if m.daisy:
+        if rho > 0:
+            raise NotImplementedError("the risk-averse MILP does not support daisy chains")
+        d = daisy_coefficients(field, cfg, repair_weight=a_rep, production_weight=a_prod)
+        m.WP = pyo.Set(initialize=[(w, s, t) for w in field.wells for (s, t) in m.P], dimen=3)
+        m.v = pyo.Var(m.WP, domain=pyo.NonNegativeReals)
+        m.v_a = pyo.Constraint(m.WP, rule=lambda m, w, s, t: m.v[w, s, t] <= m.assign[w, s])
+        m.v_l = pyo.Constraint(m.WP, rule=lambda m, w, s, t: m.v[w, s, t] <= m.lnk[s, t])
+        m.v_lo = pyo.Constraint(m.WP, rule=lambda m, w, s, t: m.v[w, s, t] >= m.assign[w, s] + m.lnk[s, t] - 1)
+        m.y = pyo.Var(m.WP, m.K, domain=pyo.NonNegativeReals)
+        m.y_lo = pyo.Constraint(m.WP, m.K, rule=lambda m, w, s, t, k: m.y[w, s, t, k] >= m.v[w, s, t] + m.size[t, k] - 1)
+        failure = (failure + sum(d.link_repair[p] * m.lnk[p] for p in m.P)
+                   + sum(d.well_link[i] * m.v[i] for i in m.WP)
+                   + sum(d.well_hub[w, s, t, k] * m.y[w, s, t, k] for (w, s, t) in m.WP for k in m.K))
+    m.failure_expr = pyo.Expression(expr=failure)
     failure_term = m.failure_expr
 
     if rho > 0:
@@ -158,8 +193,9 @@ def solve(m: pyo.ConcreteModel, cfg: dict, time_limit: float | None = None) -> L
     sizes = {s: k for s in m.S for k in m.K if pyo.value(m.size[s, k]) > 0.5}
     assignment = {w: s for w in m.W for s in m.S
                   if pyo.value(m.assign[w, s]) > 0.5}
+    links = {s: t for (s, t) in m.P if pyo.value(m.lnk[s, t]) > 0.5} if m.daisy else {}
     return LayoutSolution(open_sites=sorted(sizes), assignment=assignment, sizes=sizes,
-                          objective=pyo.value(m.cost), status=status, info={"gap": gap})
+                          objective=pyo.value(m.cost), status=status, info={"gap": gap}, links=links)
 
 
 def optimize_capex(field: Field, cfg: dict) -> LayoutSolution:

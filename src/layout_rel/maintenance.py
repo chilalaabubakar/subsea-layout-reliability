@@ -90,15 +90,16 @@ class FailureCostSummary:
 
 
 def expected_failure_cost(field: Field, cfg: dict, assignment: dict[str, str],
-                          sizes: dict[str, int] | None = None) -> FailureCostSummary:
+                          sizes: dict[str, int] | None = None,
+                          links: dict[str, str] | None = None) -> FailureCostSummary:
     """Expected yearly failure cost of a layout (plateau production, undiscounted)."""
     keys = ("failures", "repair_cost", "lost_volume", "lost_production")
     total = dict.fromkeys(keys, 0.0)
     by_kind: dict[str, dict[str, float]] = {}
     down = dict.fromkeys(field.wells, 0.0)
-    for mode in failure_modes(field, cfg, assignment, sizes):
+    for mode in failure_modes(field, cfg, assignment, sizes, links):
         c = mode_cost(cfg, mode)
-        label = mode.name.split()[0] if not mode.name.startswith(("infield", "tieback")) \
+        label = mode.name.split()[0] if not mode.name.startswith(("infield", "tieback", "link")) \
             else " ".join(mode.name.split()[:2])
         agg = by_kind.setdefault(label, dict.fromkeys(keys, 0.0))
         for k in keys:
@@ -162,3 +163,53 @@ def failure_cost_coefficients(field: Field, cfg: dict, repair_weight: float = 1.
             for k in manifold_sizes(cfg):
                 connect_size[w, s, k] = cost("manifold", q, slots=k)[1]
     return FailureCostCoefficients(constant, site, site_size, connect, connect_size)
+
+
+@dataclass
+class DaisyCoefficients:
+    """Extra terms of the linear failure cost when daisy chains are allowed.
+
+    With link[s,t] = 1 (satellite s tied into hub t), relative to FailureCostCoefficients:
+      link[s,t]      * link_repair[s,t]   repair of the s-t lines, minus the repair of s's own
+                                          tie-back (counted in site[s] for every open site)
+      v[w,s,t]       * well_link[w,s,t]   well w on satellite s: loss from the s-t lines and the
+                                          hub's tie-back, minus the loss from s's own tie-back
+                                          (counted in connect[w,s]); can be negative
+      y[w,s,t,k]     * well_hub[w,s,t,k]  well w on satellite s: loss when the k-slot hub manifold fails
+    with v = assign[w,s] * link[s,t] and y = assign[w,s] * link[s,t] * size[t,k].
+    """
+    link_repair: dict[tuple[str, str], float]
+    well_link: dict[tuple[str, str, str], float]
+    well_hub: dict[tuple[str, str, str, int], float]
+
+
+def daisy_coefficients(field: Field, cfg: dict, repair_weight: float = 1.0,
+                       production_weight: float = 1.0) -> DaisyCoefficients:
+    from .economics import manifold_sizes
+    price = param(cfg, "production.oil_price")
+    wr, wp = repair_weight * YEAR, production_weight * YEAR
+
+    def cost(comp: str, **kw) -> tuple[float, float]:
+        """(repair cost, lost production per unit well rate) of a component."""
+        r, lam = repair(cfg, REPAIR_KIND[comp]), rate(cfg, comp, **kw)
+        return lam * wr * r.cost, lam * wp * r.downtime * price
+
+    def lines(L: float) -> tuple[float, float]:
+        a, b = cost("tieback_flowline", length=L), cost("tieback_umbilical", length=L)
+        return a[0] + b[0], a[1] + b[1]
+
+    S = field.sites
+    tie = {s: lines(field.length(s, field.host)) for s in S}
+    pairs = [(s, t) for s in S for t in S if s != t]
+    link = {(s, t): lines(field.length(s, t)) for s, t in pairs}
+    stops = 1.0 if param(cfg, "routing.hub_manifold_stops_satellites") else 0.0
+    man = {k: stops * cost("manifold", slots=k)[1] for k in manifold_sizes(cfg)}
+    link_repair = {(s, t): link[s, t][0] - tie[s][0] for s, t in pairs}
+    well_link, well_hub = {}, {}
+    for w in field.wells:
+        q = well_rate(cfg, w)
+        for s, t in pairs:
+            well_link[w, s, t] = q * (link[s, t][1] + tie[t][1] - tie[s][1])
+            for k in man:
+                well_hub[w, s, t, k] = q * man[k]
+    return DaisyCoefficients(link_repair, well_link, well_hub)

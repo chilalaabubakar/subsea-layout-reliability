@@ -575,6 +575,14 @@ routing:
     value: 1.0
     unit: "-"
     source: "Assumption: straight-line routing. >1 adds allowance for seabed obstacles/slack"
+  daisy_chain:
+    value: false
+    unit: "- (true: a manifold may tie into another open manifold instead of running its own tie-back to the host)"
+    source: "Layout option (Wang et al. 2014b study daisy-chain production loops). One level only: a satellite manifold ties into a hub manifold that has its own tie-back; hubs cannot be satellites, so no chains of three. The incoming line takes one slot of the hub manifold. A hub manifold failure, and a failure of the hub's tie-back flowline or umbilical, stops the satellite's wells too (no bypass). The satellite-to-hub flowline and umbilical are costed at the infield line rate and fail at the tie-back line rates. No hydraulic limit on the shared tie-back."
+  hub_manifold_stops_satellites:
+    value: true
+    unit: "- (true: a failure of the hub manifold also stops its satellites' wells; false: their flow bypasses the hub manifold)"
+    source: "Assumption: the satellite's flow passes through the hub manifold's header (base). False is tested as a bound: the satellite's line runs past the hub to the shared tie-back. A failure of the shared tie-back stops the satellites in both cases."
 
 solver:
   name:

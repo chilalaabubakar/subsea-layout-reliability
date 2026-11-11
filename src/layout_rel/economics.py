@@ -67,6 +67,7 @@ class CapexCoefficients:
     manifold: dict[int, float]               # USD for a manifold with k slots
     tieback: dict[str, float]                # USD if site s is opened (lines to host)
     connect: dict[tuple[str, str], float]    # USD to connect well w to site s
+    link: dict[tuple[str, str], float]       # USD of the lines from satellite s to hub t (daisy chain)
 
 
 def capex_coefficients(field: Field, cfg: dict) -> CapexCoefficients:
@@ -77,32 +78,58 @@ def capex_coefficients(field: Field, cfg: dict) -> CapexCoefficients:
         tieback={s: tieback_per_m * field.length(s, field.host) for s in field.sites},
         connect={(w, s): infield_per_m * field.length(w, s)
                  for w in field.wells for s in field.sites},
+        link={(s, t): infield_per_m * field.length(s, t)
+              for s in field.sites for t in field.sites if s != t},
     )
 
 
+def hub_load(assignment: dict[str, str], links: dict[str, str] | None) -> dict[str, int]:
+    """Slots used at each open site: its wells plus one per satellite tied into it."""
+    load = {s: list(assignment.values()).count(s) for s in set(assignment.values())}
+    for t in (links or {}).values():
+        load[t] += 1
+    return load
+
+
+def check_links(assignment: dict[str, str], links: dict[str, str] | None) -> None:
+    """A satellite ties into an open hub, and a hub is not itself a satellite."""
+    open_sites = set(assignment.values())
+    for s, t in (links or {}).items():
+        if s not in open_sites or t not in open_sites or s == t:
+            raise ValueError(f"link {s} -> {t}: both sites must be open and different")
+        if t in links:
+            raise ValueError(f"link {s} -> {t}: {t} is itself a satellite")
+
+
 def capex_breakdown(field: Field, cfg: dict, assignment: dict[str, str],
-                    sizes: dict[str, int] | None = None) -> dict[str, float]:
+                    sizes: dict[str, int] | None = None,
+                    links: dict[str, str] | None = None) -> dict[str, float]:
     """CAPEX [USD] by category for a layout given as {well: site}.
 
     ``sizes`` gives the slot size per open site; if omitted, each site gets the
-    smallest manifold that fits its wells (the cheapest choice).
+    smallest manifold that fits its wells (the cheapest choice). ``links`` maps a
+    satellite site to the hub site it is daisy-chained to (none: every open site has
+    its own tie-back).
     """
     missing = set(field.wells) - set(assignment)
     if missing:
         raise ValueError(f"Wells not assigned: {sorted(missing)}")
+    links = links or {}
+    check_links(assignment, links)
     c = capex_coefficients(field, cfg)
-    count = {s: list(assignment.values()).count(s) for s in set(assignment.values())}
+    count = hub_load(assignment, links)
     if sizes is None:
         sizes = {s: smallest_size(cfg, n) for s, n in count.items()}
     for s, n in count.items():
         if sizes[s] < n:
-            raise ValueError(f"{s}: {n} wells on a {sizes[s]}-slot manifold")
+            raise ValueError(f"{s}: {n} wells and satellites on a {sizes[s]}-slot manifold")
 
     out = {
         "trees": c.tree_total,
         "manifolds": sum(c.manifold[sizes[s]] for s in count),
         "infield_lines": sum(c.connect[w, s] for w, s in assignment.items()),
-        "tieback_lines": sum(c.tieback[s] for s in count),
+        "tieback_lines": sum(c.tieback[s] for s in count if s not in links),
+        "link_lines": sum(c.link[s, t] for s, t in links.items()),
     }
     out["total"] = sum(out.values())
     return out
@@ -173,15 +200,15 @@ def revenue_pv(field: Field, cfg: dict) -> float:
 
 
 def npv_breakdown(field: Field, cfg: dict, assignment: dict[str, str],
-                  sizes: dict[str, int] | None = None) -> dict[str, float]:
-    """NPV and its parts [USD] for a layout."""
+                  sizes: dict[str, int] | None = None,
+                  links: dict[str, str] | None = None) -> dict[str, float]:
+    """NPV and its parts [USD] for a layout (``links``: daisy chain, satellite -> hub)."""
     from .maintenance import expected_failure_cost
     if sizes is None:
-        count = {s: list(assignment.values()).count(s) for s in set(assignment.values())}
-        sizes = {s: smallest_size(cfg, n) for s, n in count.items()}
+        sizes = {s: smallest_size(cfg, n) for s, n in hub_load(assignment, links).items()}
     a_rep, a_prod = annuity_factors(cfg)
-    capex = capex_breakdown(field, cfg, assignment, sizes)["total"]
-    f = expected_failure_cost(field, cfg, assignment, sizes)
+    capex = capex_breakdown(field, cfg, assignment, sizes, links)["total"]
+    f = expected_failure_cost(field, cfg, assignment, sizes, links)
     out = {
         "revenue": revenue_pv(field, cfg),
         "capex": capex,
