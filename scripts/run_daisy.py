@@ -5,9 +5,11 @@ chains allowed with the satellites' flow bypassing the hub manifold (a bound). F
 setting the case 1 and case 2 layouts are reported with CAPEX, expected failure cost and
 NPV, and both layouts are simulated in full (mean and CVaR of the failure cost).
 
-Usage:  python scripts/run_daisy.py path/to/config.yaml
+Usage:  python scripts/run_daisy.py [--critical-only] path/to/config.yaml
         (the config with daisy_chain false; the script switches the option itself)
-Writes: results/<case>/step10_daisy.csv
+        --critical-only  count only production-critical manifold failures
+                         (values of sensitivity.manifold_critical_only, low)
+Writes: results/<case>/step10_daisy.csv (step10_daisy_critical.csv with --critical-only)
 """
 import copy
 import sys
@@ -32,8 +34,11 @@ def describe(sol) -> str:
     return " + ".join(parts)
 
 
-def main(cfg_path: Path) -> None:
+def main(cfg_path: Path, critical_only: bool = False) -> None:
     base = load_config(cfg_path)
+    if critical_only:
+        from layout_rel.sensitivity import apply
+        base = apply(base, "manifold_critical_only", "low")
     field = load_field(field_path(base), param(base, "routing.length_factor"))
     beta = param(base, "risk.alpha")
     rows = []
@@ -53,7 +58,7 @@ def main(cfg_path: Path) -> None:
                          "MC mean [MUSD]": st["mean"] / M, f"MC CVaR{int(beta * 100)} [MUSD]": st[f"cvar{int(beta * 100)}"] / M,
                          "solve time both cases [s]": t})
     df = pd.DataFrame(rows)
-    out = results_dir(cfg_path) / "step10_daisy.csv"
+    out = results_dir(cfg_path) / ("step10_daisy_critical.csv" if critical_only else "step10_daisy.csv")
     df.to_csv(out, index=False)
     pd.set_option("display.width", 260); pd.set_option("display.max_colwidth", 90)
     print(df.to_string(index=False, float_format=lambda v: f"{v:,.1f}"))
@@ -61,4 +66,5 @@ def main(cfg_path: Path) -> None:
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]))
+    args = sys.argv[1:]
+    main(Path([a for a in args if not a.startswith("--")][0]), "--critical-only" in args)

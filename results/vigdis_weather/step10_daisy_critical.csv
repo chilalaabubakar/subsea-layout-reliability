@@ -1,0 +1,7 @@
+setting,case,layout,manifolds,chains,CAPEX [MUSD],failure PV [MUSD],NPV [MUSD],MC mean [MUSD],MC CVaR95 [MUSD],solve time both cases [s]
+separate tie-backs,case 1,8-slot at M_B + 6-slot at M_C,2,0,319.69851487039875,577.3668961980122,8349.803654033036,551.4799638593817,1122.5121334893902,3.0899669960000153
+separate tie-backs,case 2,6-slot at M_B + 4-slot at M_D + 4-slot at M_H,3,0,323.16185353099377,512.575940559413,8410.246710379935,494.8899511224535,976.6613963919331,3.0899669960000153
+daisy chain allowed,case 1,8-slot at M_B + 4-slot at M_C (into M_B) + 4-slot at M_D (into M_B) + 4-slot at M_H (into M_B),4,3,241.97816733795912,839.1605244552118,8185.5806872394505,792.41403000609,1600.2202712040205,83.23404405599999
+daisy chain allowed,case 2,6-slot at M_B + 4-slot at M_D + 4-slot at M_H,3,0,323.16185353099377,512.575940559413,8410.246710379935,494.8899511224535,976.6613963919331,83.23404405599999
+"daisy chain, satellites bypass the hub manifold",case 1,8-slot at M_B + 4-slot at M_C (into M_B) + 4-slot at M_D (into M_B) + 4-slot at M_H (into M_B),4,3,241.97816733795912,625.1369206715511,8399.604291023112,600.8631786196268,1155.799664729306,30.494063275000002
+"daisy chain, satellites bypass the hub manifold",case 2,4-slot at M_B (into M_H) + 4-slot at M_C + 4-slot at M_D (into M_C) + 4-slot at M_H,4,2,267.5719610847335,540.5482027728792,8452.062383358203,523.6079441328056,983.1106909065835,30.494063275000002
