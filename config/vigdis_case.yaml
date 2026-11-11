@@ -1,0 +1,14 @@
+# Second North Sea case study: Vigdis field, 13 producing wells on five templates, host Snorre A.
+# Only parameters that differ from base_case.yaml are listed here.
+_extends: base_case.yaml
+
+field_file:
+  value: field_vigdis.yaml
+  unit: "-"
+  source: "Generated from Sodir fact pages by scripts/prepare_vigdis.py (see config/field_vigdis.yaml)."
+
+production:
+  well_rate:
+    value: 5174.0
+    unit: bbl/day per well (plateau, all wells equal)
+    source: "Sodir field_production_monthly, VIGDIS: mean net oil of the plateau years 1998-2006 (67,259 bbl/d) shared over the 13 wells producing today = 5,174 bbl/d per well (scripts/prepare_vigdis.py). A simplification: the field was developed in phases and never had 13 producers on plateau."

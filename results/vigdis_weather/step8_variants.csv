@@ -1,0 +1,8 @@
+variant,case 1 layout,case 2 layout,layout differs,failure PV case-1 layout [MUSD],failure PV case 2 [MUSD],NPV case 2 [MUSD],NPV gain [MUSD],extra CAPEX [MUSD]
+base,8-slot at M_B + 6-slot at M_C,6-slot at M_B + 4-slot at M_D + 4-slot at M_H,True,824.0794147980569,783.6196652673406,8139.202985672007,36.111850239017485,3.463338660595
+f_0,8-slot at M_B + 6-slot at M_C,8-slot at M_B + 6-slot at M_C,False,651.0297304070646,651.0297304070646,8276.14081982398,0.0,0.0
+f_1,8-slot at M_B + 6-slot at M_C,4-slot at M_B + 2-slot at M_C + 4-slot at M_D + 4-slot at M_H,True,1002.0432890094831,751.0686938227448,8135.709617899993,210.58235667843056,32.174618552212415
+critical_only,8-slot at M_B + 6-slot at M_C,6-slot at M_B + 4-slot at M_D + 4-slot at M_H,True,577.3668961980122,512.575940559413,8410.246710379935,60.44305634690094,3.463338660595
+deferred_half,8-slot at M_B + 6-slot at M_C,6-slot at M_B + 4-slot at M_D + 4-slot at M_H,True,750.3760348669551,721.2009210831108,8201.621729856237,24.82721449214554,3.463338660595
+deferred_all,8-slot at M_B + 6-slot at M_C,6-slot at M_B + 4-slot at M_D + 4-slot at M_H,True,676.6726549358532,658.7821768988811,8264.040474040467,13.54257874527359,3.463338660595
+deferred_all_after_one_year,8-slot at M_B + 6-slot at M_C,8-slot at M_B + 6-slot at M_C,False,309.24207690470894,309.24207690470894,8617.928473326338,0.0,0.0

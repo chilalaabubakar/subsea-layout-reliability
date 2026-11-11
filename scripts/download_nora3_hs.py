@@ -8,7 +8,7 @@ Staneva, J., Reistad, M. (2022). The impact of a reduced high-wind Charnock para
 growth with application to the North Sea, the Norwegian Sea, and the Arctic Ocean.
 J. Geophys. Res. Oceans 127, e2021JC018196.
 
-Usage:  python scripts/download_nora3_hs.py ROW COL YEAR0 YEAR1 OUT.csv
+Usage:  python scripts/download_nora3_hs.py ROW COL YEAR0 YEAR1 OUT.csv [THREADS]
         (Solveig: 413 2028 2014 2023 data/raw/metno/nora3_hs_solveig.csv)
 Resumable: days already in OUT.csv are skipped. One small OPeNDAP request per day.
 """
@@ -51,6 +51,21 @@ def day(row: int, col: int, d: dt.date) -> list[tuple[str, float]]:
     return list(zip(stamps, hs))
 
 
+def main_parallel(row, col, y0, y1, out, threads):
+    """Same result as ``main`` (all days of y0..y1, in order), fetched with several threads."""
+    from concurrent.futures import ThreadPoolExecutor
+    days = [dt.date(y0, 1, 1) + dt.timedelta(days=i) for i in range((dt.date(y1, 12, 31) - dt.date(y0, 1, 1)).days + 1)]
+    with ThreadPoolExecutor(max_workers=threads) as ex:
+        parts = list(ex.map(lambda d: day(row, col, d), days))
+    with Path(out).open("w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["time", "hs_m"])
+        for part in parts:
+            for s, h in part:
+                w.writerow([s, f"{h:.3f}"])
+    print("finished", flush=True)
+
+
 def main(row, col, y0, y1, out):
     out = Path(out)
     done = set()
@@ -77,4 +92,7 @@ def main(row, col, y0, y1, out):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    main(int(a[0]), int(a[1]), int(a[2]), int(a[3]), a[4])
+    if len(a) > 5:                      # optional sixth argument: number of threads
+        main_parallel(int(a[0]), int(a[1]), int(a[2]), int(a[3]), a[4], int(a[5]))
+    else:
+        main(int(a[0]), int(a[1]), int(a[2]), int(a[3]), a[4])

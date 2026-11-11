@@ -1,0 +1,12 @@
+parameter,value,case 2 manifolds,case 2 layout,NPV gain vs case-1 layout [MUSD]
+mobilisation time x,0.5,3,M_B(6-slot: 6 wells) + M_D(4-slot: 3 wells) + M_H(4-slot: 4 wells),75.86386824768925
+mobilisation time x,1.0,3,M_B(6-slot: 6 wells) + M_D(4-slot: 3 wells) + M_H(4-slot: 4 wells),86.41771351940632
+mobilisation time x,1.5,3,M_B(6-slot: 6 wells) + M_D(4-slot: 3 wells) + M_H(4-slot: 4 wells),96.97155879112339
+mobilisation time x,2.0,3,M_B(6-slot: 6 wells) + M_D(4-slot: 3 wells) + M_H(4-slot: 4 wells),107.52540406283951
+mobilisation time x,3.0,3,M_B(6-slot: 5 wells) + M_D(4-slot: 4 wells) + M_H(4-slot: 4 wells),130.88852937432574
+mobilisation time x,4.0,3,M_B(6-slot: 5 wells) + M_D(4-slot: 4 wells) + M_H(4-slot: 4 wells),154.832305863451
+manifold failure rate x,0.5,3,M_B(6-slot: 6 wells) + M_D(4-slot: 3 wells) + M_H(4-slot: 4 wells),25.051493147580146
+manifold failure rate x,1.0,3,M_B(6-slot: 6 wells) + M_D(4-slot: 3 wells) + M_H(4-slot: 4 wells),86.41771351940632
+manifold failure rate x,2.0,3,M_B(6-slot: 5 wells) + M_D(4-slot: 4 wells) + M_H(4-slot: 4 wells),219.87209244022463
+manifold failure rate x,3.0,4,M_B(4-slot: 4 wells) + M_C(2-slot: 2 wells) + M_D(4-slot: 3 wells) + M_H(4-slot: 4 wells),376.5500085387168
+manifold failure rate x,4.0,4,M_B(4-slot: 4 wells) + M_C(2-slot: 2 wells) + M_D(4-slot: 3 wells) + M_H(4-slot: 4 wells),537.1828382230325

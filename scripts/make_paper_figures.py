@@ -219,6 +219,50 @@ def fig10_synthetic(cfg, out):
     plt.close(fig)
 
 
+def fig11_vigdis(out):
+    """Case 1 and case 2 layouts of the Vigdis field (wells sit at their templates)."""
+    from layout_rel.optimizer import optimize_capex, optimize_npv
+    cfg = load_config(REPO_ROOT / "config" / "vigdis_weather.yaml")
+    field = load_field(field_path(cfg), param(cfg, "routing.length_factor"))
+    c1, c2 = optimize_capex(field, cfg), optimize_npv(field, cfg)
+    km = lambda n: (field.pos(n)[0] / 1000, field.pos(n)[1] / 1000)
+    templates = {}
+    for w in field.wells:
+        templates.setdefault(km(w), []).append(w)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 7.5))
+    for ax, sol, title in zip(axes, (c1, c2), ("Case 1: CAPEX only", "Case 2: NPV with failure costs")):
+        for w, s in sol.assignment.items():
+            ax.plot([km(w)[0], km(s)[0]], [km(w)[1], km(s)[1]], color=P["grey_dark"], lw=1.2, zorder=1)
+        for s, k in sol.sizes.items():
+            ax.plot([km(s)[0], km(field.host)[0]], [km(s)[1], km(field.host)[1]], color=P["ink"], lw=2, zorder=1)
+        for (x, y), ws in templates.items():
+            ax.scatter(x, y, marker="^", s=90, color=P["grey_mid"], zorder=2)
+            t = field.graph.nodes[ws[0]].get("label", ws[0])[0]
+            off, ha = {"G": ((-8, -30), "right"), "H": ((10, -20), "left")}.get(t, ((-8, -16), "right"))
+            ax.annotate(f"{t} ({len(ws)} well{'s' if len(ws) > 1 else ''})", (x, y), xytext=off, textcoords="offset points",
+                        fontsize=10.5, color=P["grey_dark"], ha=ha)
+        for s in field.sites:
+            if s in sol.sizes:
+                ax.scatter(*km(s), marker="s", s=120, color=P["blue_main"], zorder=3)
+                ax.annotate(f"{sol.sizes[s]} slots", km(s), xytext=(9, 6), textcoords="offset points", fontsize=11, color=P["ink"])
+            elif s == "M_CEN":
+                ax.scatter(*km(s), marker="s", s=70, facecolors="none", edgecolors="#A3A29C", lw=1.5, zorder=2)
+        ax.scatter(*km(field.host), marker="D", s=120, color=P["teal"], zorder=3)
+        ax.annotate("Snorre A (host)", km(field.host), xytext=(8, 4), textcoords="offset points", fontsize=11, color=P["ink"])
+        ax.set_aspect("equal"); ax.set_title(title, loc="left", fontsize=14); ax.margins(0.12)
+        ax.set_xlabel("Easting [km]"); ax.set_ylabel("Northing [km]"); ax.grid(True, color="#E6E6E3", lw=0.8); ax.set_axisbelow(True)
+    handles = [Line2D([], [], marker="^", ls="", color=P["grey_mid"], ms=9, label="Well template (producing wells)"),
+               Line2D([], [], marker="s", ls="", color=P["blue_main"], ms=9, label="Open manifold"),
+               Line2D([], [], marker="s", ls="", mfc="none", mec="#A3A29C", mew=1.5, ms=9, label="Unused centroid site"),
+               Line2D([], [], color=P["grey_dark"], lw=1.2, label="Infield lines"),
+               Line2D([], [], color=P["ink"], lw=2, label="Tie-back")]
+    fig.legend(handles=handles, loc="lower center", ncol=3, fontsize=12)
+    fig.tight_layout(pad=2, rect=(0, 0.1, 1, 1))
+    for fmt in ("png", "pdf"):
+        fig.savefig(Path(out).with_suffix("." + fmt), dpi=300, facecolor="white")
+    plt.close(fig)
+
+
 def main(cfg_path):
     apply_publication_style(FigureStyle(font_size=15, axes_linewidth=2))
     cfg = load_config(cfg_path)
@@ -242,6 +286,7 @@ def main(cfg_path):
     fig8_tornado(res, OUT / "fig8_tornado")
     fig9_map(res, OUT / "fig9_switching_map")
     fig10_synthetic(cfg, OUT / "fig10_synthetic_field")
+    fig11_vigdis(OUT / "fig11_vigdis_layouts")
     print(f"Saved figures to {OUT}")
 
 
